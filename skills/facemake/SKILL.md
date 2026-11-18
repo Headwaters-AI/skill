@@ -271,40 +271,8 @@ difference.
 
 ### Step 3: Sketch the FACE.md
 
-Before creating the face, choose its default model: it answers when no `--llm` is given.
-
-Check the user's plan and the models:
-```bash
-faces billing:subscription --json 2>/dev/null | jq -r '.plan // "free"'   # free, connect or pro
-faces models:list --json 2>/dev/null                                      # chat models, with codex_eligible and prices
-faces auth:connections --json 2>/dev/null                                 # is ChatGPT linked?
-```
-
-Do NOT hard-code model names: they change. Pick from the live catalog, and use WebSearch if you
-need to tell which are the latest. Present exactly four options:
-
-| Option | Category | Notes |
-|---|---|---|
-| A | Flagship (recommended) | Connect or Pro with ChatGPT linked: the latest Codex-eligible GPT model (`codex_eligible: true` in `GET /v1/models`), which runs on their ChatGPT plan. Otherwise: the latest Claude Sonnet |
-| B | Flagship alternative | The other of the two |
-| C | High-quality open weights | Strong reasoning, open weights |
-| D | Fast and cheap open weights | Good for iteration, brainstorming, high volume |
-
-Then ask:
-
-> **Choosing a default model for this face.** This is the model that answers when you chat with
-> it. You can always pick another per message with `--llm`.
->
-> **Flagship:**
-> A) `<model>`: [Connect or Pro with ChatGPT linked: runs on your ChatGPT plan, recommended]
->    [Otherwise: the latest Claude Sonnet, recommended]
-> B) `<model>`: [the other flagship]
->
-> **Open weights:**
-> C) `<model>`: high quality
-> D) `<model>`: fast and cheap, good for iteration
->
-> RECOMMENDATION: Choose A.
+No model to choose: a face is asked with `faces choices`, which runs on Faces' own models, so
+`--default-model` is not needed.
 
 Create the face, then write the recipe into the body of the FACE.md the CLI created. The CLI
 owns the frontmatter and rewrites it on every face command and on `catalog:doctor --fix`,
@@ -313,11 +281,9 @@ keeping only its own keys, so the recipe goes **below** it:
 ```bash
 # 1. Create it (with the model the user chose)
 faces face:create --name "Name" --alias slug \
-  --default-model MODEL --attr key=value
+  --attr key=value
 #   face:create takes NO source material: no --source, --interview, --file or --content.
 #   It makes an empty face; sources attach afterwards (Step 5).
-#   Optional: --profile-addendum "<rules>" (or --profile-addendum-file path): a stored system
-#   prompt sent with every chat to this face, for durable rules on format, tone or limits.
 
 # 2. Keep the CLI's frontmatter, replace the body with the recipe
 F=~/.faces/catalog/<alias>/FACE.md
@@ -495,9 +461,9 @@ faces style:status --face <alias>
 
 On Connect or Pro with a linked ChatGPT account a build runs there at no charge. Anywhere else
 it is charged to credits, so it needs `--allow-paid`: pass it only if the user agrees to pay.
-Building does not apply it: chat with `--style <medium>`. See the `/faces` skill's REFERENCE.md, "Style".
+No route applies a style since chat was retired; the style stays on the face. See the `/faces` skill's REFERENCE.md, "Style".
 
 ### Step 7: Done
 
-Tell the user the face is ready. They can chat with it with `/facechat <alias>` from anywhere,
-or `/facechat` to browse their catalog and pick one.
+Tell the user the face is ready. They can ask it what it would do with `/facechat <alias>` from
+anywhere, or `/facechat` to browse their catalog and pick one.

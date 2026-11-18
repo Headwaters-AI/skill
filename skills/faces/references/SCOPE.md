@@ -19,8 +19,7 @@ All under `~/.faces/`:
 | `catalog.json`, `catalog/<alias>/FACE.md` | the local face catalog, rewritten from the server by face commands and `catalog:doctor --fix` |
 | `teams/<team-slug>/TEAM.md` | the local team catalog, written by `group:*` commands and `catalog:doctor --fix` |
 | `backups/` | snapshots from `catalog:backup` |
-| `threads/` | `chat:thread` conversation history |
-| `models-cache.json` | the cached model catalog used for chat routing |
+| `models-cache.json` | the cached model catalog |
 | `manyfaced-index.json` | the cached community catalog index from `catalog:manyfaced` |
 
 `face:avatar:get` writes the image to the path you give it (`--out`), or to the current directory.

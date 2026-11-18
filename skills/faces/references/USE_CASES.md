@@ -27,21 +27,20 @@ organization's thinking is moving.
 **7. Boolean composition.** You have a pragmatist and a visionary. Their union
 (`pragmatist | visionary`) holds both outlooks. Their intersection (`pragmatist & visionary`)
 keeps only the common ground. Their difference (`visionary - pragmatist`) is the visionary
-without the practical instinct. Each is a face you can chat with, and none needed another
+without the practical instinct. Each is a face you can ask, and none needed another
 document compiled.
 
 **8. Synthetic focus group.** Build faces for an early adopter, a skeptic, a pragmatist, a
 regulator and a loyalist. Run a product pitch or a policy change past each, with
-`faces decide` for numbers and `chat:chat` for prose.
+`faces decide` for numbers and `faces choices` for the options each would weigh.
 
 **9. Stress-testing an argument.** Compile a position into a face. Its nearest neighbors are
 who already agrees; its furthest is who opposes it most. Ask the furthest for the sharpest
 counter-argument.
 
-**10. Your own writing voice.** Compile your posts, threads and captions into a face, then
-build a style for each medium you write in (`style:make`). Draft new copy with
-`chat:chat me --style "social post" -m "<brief>"`. Compiling new material over time keeps it
-current.
+**10. Your own judgement.** Compile your posts, threads and captions into a face, then
+ask it what you would do: `faces choices me --state "<situation>" --question "<question>"`.
+Compiling new material over time keeps it current.
 
 **11. A deliberation pipeline.** Compile an `expert` face from domain literature. Make a
 `critic` as `expert - consensus`, and a `synthesizer` as `expert | critic`. Ask `expert` first,
@@ -50,13 +49,13 @@ they are a pipeline built from set algebra.
 
 **12. Debate between faces.** Get one face's cause on the question and hand it to another.
 `faces causes penrose -m 'What resolves the information paradox?'` prints
-Penrose's cause; then `faces chat:chat hawking --llm gpt-4o-mini -m 'Penrose holds: <the
-cause>. Defend your position against it.'` Alternate for as many rounds as the exchange needs.
+Penrose's cause; then `faces choices hawking --state 'Penrose holds: <the cause>.' --question
+'How do you answer him?'`. Alternate for as many rounds as the exchange needs.
 
 **13. Neutral analysis across faces.** Get each face's cause on the same question, then give
 them to a model with no face. `faces causes marx -m 'What drives history?'`
-and the same for `hayek`, then `faces chat:messages gpt-4o-mini -m 'Marx: <cause>. Hayek:
-<cause>. Where do they converge?'` The model compares both without taking either side.
+and the same for `hayek`, then give both to your own model and ask where they converge. The
+model compares both without taking either side.
 
 **14. Steering your own pipeline.** Call `faces causes alias -m "…"` (the API's
 `POST /v1/causes`) for the cause alone, and put it in front of whatever model or agent you
