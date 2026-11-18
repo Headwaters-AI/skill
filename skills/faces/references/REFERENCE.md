@@ -37,9 +37,9 @@ faces face:unshare      <alias>  (--from ACCOUNT... | --all)  [--yes]
                                                        # --add keeps the current list; --with REPLACES it, and asks first
                                                        # (or needs --yes) when that would drop someone. Accounts are
                                                        # usernames or emails; the stored list is usernames, so revoke by
-                                                       # username. Sharing lets them chat with it and read its card: not
+                                                       # username. Sharing lets them ask it and read its card: not
                                                        # its documents, compiling, re-sharing, or its profile addendum.
-faces face:publish      <alias>  --yes        # every account can chat with it
+faces face:publish      <alias>  --yes        # every account can ask it
 faces face:unpublish    <alias>
 faces face:sources      <alias>  [--type doc|thread]
                                                        # every source on the face, documents and threads in one table:
@@ -79,53 +79,39 @@ faces face:tag:remove   <alias>  <tag>
 faces face:tag:all
 faces face:groups       <alias>  --group GROUP_ID  [--group GROUP_ID...]
 
-faces chat:chat         <alias | owner:alias | "(a | b)">[@model]  -m MSG  [--llm MODEL]  [--system TEXT]  [--file PATH]
-                        [--style MEDIUM]  [--medium MEDIUM]  [--session ID]  [--compaction ID]
-                        [--show-cause | --cause-only]  [--cause TEXT | --cause-file PATH]
-                        [--max-tokens N]  [--temperature F]  [--no-stream]  [--responses]  [--oauth-only]
-                        [--formula EXPR]
-                                                       # A face named without a model answers on its default model.
-                                                       # --show-cause: the cause to stderr before the answer.
-                                                       # --cause-only: the cause alone, no model answers (or use
-                                                       # faces causes).
-                                                       # --cause: supply this turn's cause yourself (needs a model).
-                                                       # --style: apply the face's built style for that medium.
-                                                       # --medium: say what the reply is (needs no build).
-                                                       # --session / --compaction: see "States and compaction".
-faces chat:messages     <alias@model | owner:alias@model | model>  -m MSG  [--system]  [--max-tokens N]  [--no-stream]
-                        [--style MEDIUM]  [--medium MEDIUM]  [--session ID]  [--compaction ID]  [--show-cause]  [--cause TEXT | --cause-file PATH]  [--oauth-only]
-faces chat:responses    <alias@model | owner:alias@model | model>  -m MSG  [--instructions]  [--max-tokens N]  [--temperature F]  [--no-stream]
-                        [--style MEDIUM]  [--medium MEDIUM]  [--session ID]  [--compaction ID]  [--show-cause]  [--cause TEXT | --cause-file PATH]  [--oauth-only]
-                                                       # These two send the model as typed: name the model. A face
-                                                       # named alone returns its cause only, printed in place of a reply.
-                                                       # chat:responses takes --max-tokens of at least 16.
-faces chat:thread       <alias | owner:alias>  -m MSG  [--llm MODEL]  [--system]  [--file PATH]  [per-turn flags]   # start a thread
-faces chat:thread       --id THREAD_ID  -m MSG  [per-turn flags]                                                    # resume it
-faces chat:thread       --list
-faces chat:thread       --id THREAD_ID  (--show | --delete)  [--yes]
-                                                       # per-turn flags: --max-tokens, --temperature, --no-stream,
-                                                       # --style, --medium, --session, --compaction, --show-cause,
-                                                       # --cause/--cause-file, --oauth-only
+faces choices          <alias | owner:alias | "(a | b)">  (--state TEXT | --state-file PATH | --state-id ID)  [--question TEXT]
+                        [--model maestro-1|maestro-1-flash]  [--max-choices N]
+                                                       # what the face would do (POST /v1/choices): its options,
+                                                       # strongest first. No --question: the question it would ask.
+                                                       # --state is prose, at most 3,000 tokens; longer goes in a state
+                                                       # (--state-id). With both, the prose is an addendum for that
+                                                       # call only, never saved: persist facts with state:add --premise.
 
 faces causes           <alias | owner:alias | "(a | b)">  (-m MSG... | --file PATH | --state TEXT | --state-file PATH)
                         [--question TEXT [--type noul|choice|score] [--option NAME[=DESCRIPTION]... | --level DESCRIPTION...] [--id KEY] | --questions-file PATH]
-                        [--session ID]  [--compaction ID]
+                        [--conversation ID [--premise K=V ...]]  [--session ID]  [--compaction ID]
                                                        # the cause alone (POST /v1/causes): no model answers, only
                                                        # the cause is charged. Questions need --state, one cause each.
 
-faces session:create    <alias | owner:alias | "(a | b)">        # opens a state with a face alone, no @model
-faces session:get       <session_id>
-faces session:compact   <session_id>
-faces session:close     <session_id>  [--yes]
+faces state:create      [<alias | owner:alias | "(a | b)">]  [--premise K=V ...]  [--no-causes-visible]
+faces state:add         <state_id>  [--premise K=V ...]  [--premise-description K="..."]  [--premise-status K=STATUS]
+                        [--premise-depends-on K=a,b]  [-m MSG]
+                                                       # prints the status changes and the decisions resting on a value
+                                                       # you changed. STATUS: stated|verified|assumed|unresolved|invalidated
+faces state:get         <state_id>
+faces state:items       <state_id>                     # premises with their status, decisions, messages
+faces state:compact     <state_id>  [<face>]
+faces state:close       <state_id>  [--yes]
+                                                       # conversation:* and session:* are older names for state:*
 
-faces models:list       [--kind chat|image|transcription|decision|cause|compile[,...] | --kind all]  [--provider LAB]  [--chatgpt]
+faces models:list       [--kind choices|decision|cause|compile|chat|image|transcription[,...] | --kind all]  [--provider LAB]  [--chatgpt]
                                                        # the model catalog, once each, with kind, endpoint and price.
                                                        # CODEX marks Codex-eligible models. No sign-in needed.
 
 faces decide (<alias> | --baseline)  (--state TEXT | --state-file PATH)
                       [--question TEXT [--type noul|choice|score] [--option NAME[=DESCRIPTION]... | --level DESCRIPTION...] [--id KEY] | --questions-file PATH]
                       [--model jev-latest|clef|clef-flash|gpt-6-luna]  [--format systemone|openai]  [--show-cause]
-                      [--session ID]  [--compaction ID]  [--no-retry]
+                      [--conversation ID [--depends-on a,b] [--premise K=V ...]]  [--session ID]  [--compaction ID]  [--no-retry]
                                                        # typed answers, as this face, or with no face for --baseline.
                                                        # A face with no questions gives its cause alone. See Decisions.
 
@@ -202,8 +188,8 @@ faces style:upload      <alias>  <file>  [--type jsonl|email_jsonl|thread_json] 
                                                        # load a corpus of the person's OWN writing. Stores only: nothing
                                                        # compiled, nothing billed. ONE MEDIUM PER FILE.
 faces style:make        <alias>  (--all | --source ID[:MEDIUM]...)  [--medium MEDIUM]  [--model MODEL]  [--allow-paid]  [--no-compile]  [--timeout N]  [--no-wait]
-                                                       # build a style per medium and install it. Building does not apply
-                                                       # it: chat with --style MEDIUM. Charged to credits unless it runs
+                                                       # build a style per medium and install it. No route applies a
+                                                       # style since chat was retired. Charged to credits unless it runs
                                                        # on a linked ChatGPT account (Connect or Pro): --allow-paid.
 faces style:status      [JOB_ID]  [--face ALIAS]  [--limit N]  [--wait]  [--timeout N]
                                                        # one build, or a face's recent builds (how to find a lost job id)
@@ -213,7 +199,7 @@ faces style:delete      <alias>  [--medium MEDIUM | --all]  [--yes]
                                                        # delete a style build. Sources, and what the face learned
                                                        # from them, are kept.
 
-faces catalog:doctor      [--fix]  [--generate]
+faces catalog:doctor      [--fix]
 faces catalog:list
 faces catalog:backup
 faces catalog:restore     [FILE]  [--compile]
@@ -267,223 +253,82 @@ faces config:clear  [--yes]                            # never run this: see SKI
 
 ## Fidelity (`fidelity:*`)
 
-A fidelity run is ten blind turns on a face the user owns. Each turn shows two answers, `a`
-and `b`, in random order: one from the face, one from a competitor model. The user picks the one
-that sounds more like the person, then accepts it or corrects it. The score, out of 10, is saved
-on the face (owner only) and replaced by the next run.
+Fidelity runs compared chat answers, and are retired with chat: starting or advancing one is a
+`410`. Runs already made can still be read and saved:
 
 ```bash
-faces fidelity:run alice                          # interactive: ten turns, then the score
-faces fidelity:start alice [--competitor <model>]  # or step by step
-faces fidelity:turn <run> -m "How was the trip?"
-faces fidelity:pick <run> a                       # accept answer a
-faces fidelity:pick <run> b --correction "Fine, thanks. Long drive."
 faces fidelity:get <run>                          # progress, every turn, the score
-faces fidelity:save-thread <run>                  # save it as a thread you can compile
+faces fidelity:save-thread <run>                  # save a finished run as a thread you can compile
 ```
-
-Scoring per turn: the face picked and accepted 1.0; picked and corrected 0.9, 0.7 or 0.5 by how
-much the correction changed; the competitor picked 0. The user drives every turn: never pick or
-correct on their behalf.
 
 ## Default model (`--default-model`)
 
-`--default-model` on `face:create` and `face:edit` sets the model `chat:chat` and `chat:thread`
-answer on when no `--llm` is given. Without one, a new face takes the account's default model
-(`account:preferences default_model`), copied once at creation.
-
-```bash
-faces face:create --name "Ada" --alias ada --default-model gpt-5.4-mini
-faces chat:chat ada -m "hello"    # answers on gpt-5.4-mini
-```
-
-## Chat routing
-
-`chat:chat` sends each model to its `endpoint` in the model catalog (`GET /v1/models`, cached
-locally for about an hour), so no model name needs hard-coding:
-
-| Catalog `endpoint` | Response shape |
-|---|---|
-| `/v1/responses` | OpenAI Responses (`output` / `output_text`) |
-| `/v1/messages` | Anthropic Messages |
-| `/v1/chat/completions` | OpenAI Chat Completions |
-
-`--responses` forces the Responses endpoint. `chat:messages` (always `/v1/messages`) and
-`chat:responses` (always `/v1/responses`) call one endpoint directly.
-
-**One model, one id.** The catalog lists each model once, under the id its lab gives it, and
-its `provider` (and `owned_by`) is that **lab**: `openai`, `anthropic`, `xai`, `qwen`, `z-ai`,
-`moonshot`, and so on. Do not group or reason about models by anything else. List them, with
-kind, endpoint, Codex eligibility and price, with `faces models:list`.
-
-**Kinds.** Each catalog entry has a `kind`: `chat`, `image`, `transcription`, `decision`,
-`cause` or `compile`. With no `--kind` (`?kind=` on the API) the list is chat models only;
-`--kind` takes one kind, a comma-separated list (`--kind cause,compile`), or `all`. Only `kind: chat` models answer a chat;
-a chat naming a decision model (`alias@jev-latest`) is refused before sending: use
-`faces decide`.
-
-**Codex-eligible models** (`codex_eligible: true`; `faces models:list --chatgpt` lists them) run
-on a linked ChatGPT plan at `/v1/responses` (Connect or Pro), and are paid from credits
-otherwise. Their catalog endpoint is
-`/v1/responses`, so `chat:chat` sends them there. Eligible means the model **can** run there; a
-ChatGPT plan that does not serve it answers `422 model_not_supported`. See
-[OAUTH.md](OAUTH.md).
-
-In `--json`, chat output includes `_meta`: `provider` (the lab), `billing` (`oauth`: it ran on
-the linked ChatGPT plan; `credits`: paid from the balance) and `cost_usd` (a string);
-`chat:chat` adds `endpoint` and `model`. **Branch on `billing`**, never on `provider`.
-
-For a face named without a model, `chat:chat` and `chat:thread` use the face's
-`default_model`. A face with none is refused before sending: name a model, or ask for the cause
-alone with `--cause-only` or `faces causes`. A bare alias only ever resolves **your own** faces; another
-account's face is `owner:alias` (see
-[System & published faces](#system--published-faces)).
+`--default-model` on `face:create` and `face:edit` stores the face's preferred model for
+clients to read. No command applies it since chat was retired.
 
 ## The face's cause
 
-Every answer from a face comes with its **cause**: the principal *why* behind the face's
-response in this context. The CLI keeps it apart from the answer:
-
-- **`--show-cause`** prints the cause to stderr ahead of the answer; stdout stays the answer
-  alone.
-- **`faces causes <face> -m "…"`** (or `chat:chat --cause-only`) asks for the cause alone: the
-  Causes API, `POST /v1/causes`. No model answers, and only the cause is charged, at the cause
-  rate. Use it to bring a face's view into your own prompt or pipeline. `faces causes` also
-  takes a situation (`--state`) in place of a conversation, with optional questions for one
-  cause per question (up to 10), in the same shape as `faces decide`. A cause takes about 10
-  seconds.
-- **`--cause "TEXT"`** (or `--cause-file PATH`) supplies this turn's cause yourself, up to
-  30,000 tokens. The model answers on it in place of the face's own, **no cause is charged**,
-  and it is faster. It needs a model named; with a face alone the CLI refuses before sending.
-  It comes back where a cause normally does, and a thread keeps it like any other.
-
-In `--json` the cause is always marked as the face's: `message.cause` on chat completions, a
-`reasoning` item with id `rs_faces_…` on responses, a `thinking` block with signature
-`faces-reasoning` on messages. A model's own reasoning (`reasoning_content`, its own reasoning
-items or signed thinking blocks) is separate: never present it as the face's cause, and never
-present the cause as what the face said.
-
-**Keep causes in the transcript.** When you build a transcript yourself against the API, send
-each assistant turn back exactly as it was returned, cause included. `chat:thread` does this
-for you. On chat, a cause reads the message it answers and up to the four turns before it,
-within 30,000 tokens; earlier turns are not read and not billed. `faces causes` with `-m`
-(`POST /v1/causes` with `messages`) reads every message sent, and takes at most 30,000 tokens
-per request.
-
-**Limits on a face:** at most 30,000 tokens per message, on all three chat endpoints. Per
-request, `face@model` takes up to the model's own input limit less 4,500, the most a face adds
-(`max_request_tokens_with_face` on GET /v1/models); a model with no listed limit, a face alone,
-and a formula on `/v1/responses` or `/v1/messages` take 62,000. Over any limit is a `422`
-naming the size, before any work. `--style` adds up to about 4,000 tokens more that the limit
-does not reserve, so leave room for it; a request that runs past the model's own limit gets the
-model's own length error.
-
-A face with **nothing compiled** still answers on a chat, from its name, profile addendum and
-attributes, with no cause and no cause charge. Its cause alone (`faces causes`, `--cause-only`, or `decide` with
-no questions) is a `409`.
+A face's **cause** is the principal *why* behind its response in this context.
+**`faces causes <face> -m "…"`** asks for it alone: the Causes API, `POST /v1/causes`, charged
+at the cause rate. Use it to bring a face's view into your own prompt or pipeline. It also takes
+a situation (`--state`) in place of messages, with optional questions for one cause per
+question (up to 10), in the same shape as `faces decide`. A cause takes about 10 seconds.
+`faces causes` with `-m` reads every message sent, at most 30,000 tokens per request. A face
+with nothing compiled has no cause: `409`.
 
 ## States and compaction
 
-A **state** is something your agent builds and Faces keeps and watches: your **premises** (named
-facts you declare), the decisions faces made, each face's reply with its `cause` and the model
-that wrote it, and your own messages. Each decision is kept with the premises in force when it
-was made. It is not a message log: when you change a premise, the response lists the decisions
-made under its old value, and you can read the whole state back at any time. Nothing in it is
-hidden from you. A turn sends only the new message; the state is put in front of it, and a
-face's earlier words are never taken from the request. Over HTTP it is `/v1/states`; entries are
-items in OpenAI's Responses item format. A request joins one with the `conversation` field (the
-field keeps that name).
-
-Old names still work: `/v1/conversations` is a deprecated alias of `/v1/states` that answers with
-the old object names (`conversation`, `conversation.deleted`) and will be removed, so use
-`/v1/states`. `/v1/sessions`, the `session` field, and the CLI's `conversation:*` and `session:*`
-commands and `--session` also still work. When you send `tools` with a turn, the face's tool calls and the results you send
-back are kept too: on the next turn send only the result, since the state already holds
-the call it answers. **Compacting** returns a summary of one face's position over the state, in
-the face's own terms, under a `compaction_id`. Send that id on a later request with the same
-face, and its cause reads the summary in place of the history.
+A **state** is the situation your agent builds, kept on the server: premises (named facts, each
+with a status and what it depends on), the decisions faces made, and your messages. Over HTTP it
+is `/v1/states` (`/v1/conversations` is a deprecated alias). Hand it to a face with
+`faces choices --state-id`; join `decide` and `causes` to it with `--conversation`.
 
 ```bash
-faces session:create alice                       # a face alone (or owner:alias, or a composite), no @model
-# {"object": "session", "id": "fs_...", "model": "alice", "turns": 0, "status": "open", ...}
-
-faces chat:chat alice -m "Should I take the offer?" --session fs_...      # send only the new message
-faces decide alice --state "..." --question "..." --session fs_...       # reads the state too
-
-faces session:compact fs_...                     # {"compaction_id": "fcmp_...", "cause": "...", "turns": 8, ...}
-faces chat:chat alice -m "So what do I tell them tomorrow?" --compaction fcmp_...
-
-faces causes alice -m "And now?" --compaction fcmp_...          # the cause alone, reading the summary
-faces session:get fs_...                         # turns and last use, up to date
-faces session:close fs_... --yes                 # takes no more turns, cannot be read; its compactions stay usable
+faces state:create alice
+faces state:add fs_... --premise rent_rises='"12% in March"' --premise-status rent_rises=assumed \
+  --premise-description rent_rises="the landlord says rent goes up 12% in March"
+faces state:add fs_... --premise can_afford=false --premise-depends-on can_afford=rent_rises \
+  --premise-description can_afford="the shop can carry the higher rent"
+faces decide alice --conversation fs_... --depends-on can_afford --state "Decide about the lease." \
+  --question "Move the shop to a cheaper street before March?"
+# ...
+# decision id (answer): dec_...
+faces state:add fs_... --premise rent_rises='"no rise this year"' --premise-status rent_rises=invalidated
+# 3 statuses changed:
+#   premise rent_rises: assumed -> invalidated
+#   premise can_afford: stated -> invalidated (because rent_rises)
+#   decision dec_...: decided -> invalidated (because can_afford)
+faces choices alice --state-id fs_... --question "What should the shop do?"
 ```
 
-- `--session` and `--compaction` work on every `chat:*` command, `faces causes` and
-  `faces decide`, and together: the turn joins the state and reads the compaction. With
-  `--compaction`, send only the messages you still want read.
-- Not with `chat:thread`: a thread resends its local transcript, which the state already
-  holds, so earlier messages are stored twice. Use `chat:chat --session` instead.
-- `system` and `developer` instructions apply to their request only and are not kept.
-- A state belongs to the account that opened it. Opened with a face, another face cannot
-  use it (`404`).
+**Premises.** `--premise key=value` (the key is 1 to 64 letters, digits, `_` or `-`; the value
+is JSON when it is JSON, else text), with `--premise-description` the first time a key is used.
+`--premise-status key=status`: `stated` (default), `verified`, `assumed`, `unresolved`,
+`invalidated`. `--premise-depends-on key=a,b`: premise keys and decision ids already in the
+state or set in the same request, at most 200; `key=` clears it, and a newer value without it
+keeps the earlier one. A premise cannot depend on itself.
 
-**Premises.** A premise is a fact your decisions depend on: a `key` (1 to 64 letters, digits,
-`_` or `-`), a `value` (any JSON) and a plain `description`, required the first time a key is
-used and kept after. A newer value replaces it from that point on. Every decision is stored with
-the premises in force when it was made. Add premises and your own messages with `faces conversation:add`, at most 20 items at a time:
+**Status.** Each premise has the status the agent set; each decision is `decided`. Read back,
+`status` is the **effective** one: `invalidated` when its own is, or when anything it depends on
+is, directly or through others. Only `invalidated` spreads. Setting an invalidated premise to
+another status restores what depended on it, unless something else it depends on is still
+invalidated. `asserted_status` is the agent's own when it differs; `because` names what
+invalidated it. A write's response lists `status_changes`: `[{kind, key | id, from, to,
+because}]`.
 
-```bash
-faces conversation:add fs_... --premise budget_usd=50000 \
-  --premise-description budget_usd="the most we can spend this year"
-faces conversation:add fs_... --premise budget_usd=20000 -m "The budget was cut."
-```
+**Decisions in a state.** `decide --depends-on a,b` says what a decision rests on; it is shown
+those and invalidated with them. Without it, it rests on every premise in force. The response
+carries `decision_ids` (printed as `decision id (<question>): dec_...`) to name in a later
+`--depends-on`. When a premise's value changes, `decisions_made_under_old_values` lists the
+decisions that rested on the old value, with `via` naming a decision that carried it. Nothing is
+decided again for you.
 
-`--premise key=value` reads the value as JSON when it is JSON and as text otherwise. The same
-over HTTP:
+**Compaction.** `faces state:compact fs_... [face]` writes one face's position over the state as
+a compaction id (`fcmp_...`); `--compaction fcmp_...` on `causes` or `decide` reads it. Billed at
+the cause rate.
 
-```bash
-curl -X POST https://api.faces.sh/v1/states/fs_.../items \
-  -H "Authorization: Bearer $FACES_API_KEY" -H "Content-Type: application/json" \
-  -d '{"premises": [{"key": "vendor_certified", "value": false}]}'
-# {"object": "list", "data": [...the new items...],
-#  "premises": {"vendor_certified": {"value": false, "description": "the vendor holds a SOC 2 report"}, ...},
-#  "decisions_made_under_old_values": [{"call_id": "dec_...", "question": {"id": "sign", ...},
-#    "choice": "yes", "face": "alice", "changed": {"vendor_certified": {"was": true, "now": false}}}]}
-```
-
-- `premises` is each key's current value. `decisions_made_under_old_values` lists every earlier
-  decision made while a key you just changed held a different value. Nothing is decided again:
-  your agent chooses which to revisit (ask again with `decide --conversation`).
-- A turn can carry premises too: `--premise` on `chat:chat`, `decide` and `causes` with
-  `--conversation`, or over HTTP `"premises": [...]` beside `"conversation": "fs_..."` on
-  `/v1/chat/completions`, `/v1/responses`, `/v1/messages`, `/v1/decisions`, `/v1/systemone` or
-  `/v1/causes`. Without `conversation` that is a `422`.
-- Only your own messages (`role: user`) and premises can be added; a face's replies and
-  decisions are written by the turns that produce them (`422` otherwise).
-- `GET /v1/states/fs_.../items` lists the items a page at a time, like OpenAI's list
-  of conversation items: `limit` (1 to 100, default 20), `order` (`desc`, newest first, the
-  default, or `asc`), and `after` (an item id; pass the page's `last_id` for the next page
-  while `has_more` is true). Each page carries the current `premises`. `format=openai` returns
-  only OpenAI's item types and fields (no face name, model, cause or premises; a decision
-  becomes a `decision` tool call and its result). `faces conversation:items` reads every page
-  for you, oldest first.
-
-**Several faces.** Over HTTP, `POST /v1/states` with `{}` (no `model`) opens a
-state any of your faces can join, each turn naming its face. Each face reads the others'
-replies labelled with their names, and their causes unless `"causes_visible": false` (on the
-state or the turn). Compacting it needs the face: `{"model": "alice"}` on
-`POST /v1/states/fs_.../compact` (`422` without).
-
-- **Cost:** opening, reading, adding items and closing are free, and a turn costs what it costs
-  without a state. Compacting is billed at the cause rate on the tokens it reads and
-  writes (on Connect and Pro, against the cause allowance). Using a compaction adds its text to
-  what the cause reads. A compaction that fails is not charged. Opening, adding items and
-  compacting count against the per-minute rate limit.
-- **Expiry:** a state expires 30 days after its last use, and is deleted with everything
-  in it; a compaction 30 days after it is written. An expired one answers `404`, as one that
-  does not exist, and nothing is charged.
-- Compacting a state with no turns is a `422`. A compaction is held open like a cause, so
-  allow at least 300 seconds.
+Opening, reading and adding to a state are free. A state expires 30 days after its last use. A
+`404` on a state means unknown, expired, closed, another account's, or opened with another face.
 
 ## The `me` face
 
@@ -518,50 +363,40 @@ Besides your own faces, every account can use a curated set of **system faces** 
 In `--json` a published face carries `published: true` and `owned_by`; build the handle
 `owned_by:alias` from those rather than assuming `head`, since the set and its owner can change.
 
-**Chatting with one** uses `owner:alias`, and needs a model (it has no default model of yours):
+**Asking one** uses `owner:alias`:
 
 ```bash
-faces chat:chat head:socrates@gpt-5.6-terra -m "Is this argument valid?"
-faces chat:chat logician@gpt-5.4 -m "..."      # your own faces stay bare
+faces choices head:socrates --state "A chain bakery opened across the street." --question "What now?"
+faces choices logician --state "..."      # your own faces stay bare
 ```
 
-The same handle works on `chat:messages`, `chat:responses`, `chat:thread`, `decide`,
-`face:get`, `face:neighbors`, `face:avatar:*` and `group:add`. The **caller** pays for the
-answer at normal rates; the owner is never charged. The bare handle with no model returns the
-face's cause alone.
+The same handle works on `causes`, `decide`, `face:get`, `face:neighbors`, `face:avatar:*` and
+`group:add`. The **caller** pays at normal rates; the owner is never charged.
 
 ## Run-time composite faces
 
-Chat with a **composite composed on the fly**, without persisting it, by putting a formula where
+Ask a **composite composed on the fly**, without persisting it, by putting a formula where
 the face goes:
 
 ```bash
-faces chat:chat "(socrates | nietzsche)@claude-sonnet-4-6" -m "What is virtue?"
-faces chat:chat --formula "socrates | nietzsche" --llm claude-sonnet-4-6 -m "What is virtue?"
-faces chat:chat "(socrates | nietzsche)" --cause-only -m "What is virtue?"    # its cause alone, no model
+faces choices "(socrates | nietzsche)" --state "..." --question "What is virtue?"
+faces causes "(socrates | nietzsche)" -m "What is virtue?"
 faces decide "(alice | bob)" --state "..." --question "..."
 ```
 
 Operators: `|` union, `&` intersection, `-` difference, `^` symmetric difference. Parentheses
-group and nest: `((a | b) & c)@gpt-5.4`. Works on every `chat:*` command, `faces causes`, `--cause-only` and
-`faces decide`, priced like one face. A saved composite (`face:create --formula`) works the same
-way everywhere.
-
-**Naming.** A run-time composite **answers under the name of its first operand**:
-`(socrates | nietzsche)@model` answers as Socrates, and borrows Socrates' profile addendum. To
-give a blend its own name or addendum, persist it with `face:create --alias … --formula …`.
+group and nest: `((a | b) & c)`. Works on `faces choices`, `faces causes` and `faces decide`,
+priced like one face. A saved composite (`face:create --formula`) works the same way everywhere.
 
 Rules:
 
-- **An answer needs `@model` or `--llm`**: a run-time composite has no default model. The CLI
-  refuses one without, before any round trip. Its cause alone needs no model.
 - **An empty result is a `422 empty_composite`**:
   `{"detail": {"error_code": "empty_composite", "message": "the intersection between these two faces is null"}}`.
   Branch on `error_code` and show `message` as it is. A composite with nothing compiled is a
   `409`: each face in it needs a source.
 - **Operands are concrete faces**, not composites (no nesting: `422`). A bare alias is one of
   your own; `owner:alias` works in a run-time formula for a face you can read
-  (`(alice | head:socrates)@model`). A face you cannot read is a `404`. A persisted formula
+  (`(alice | head:socrates)`). A face you cannot read is a `404`. A persisted formula
   takes only your own faces.
 - **Difference needs spaces:** `a - b`. A dash between letters (`news-bot`) is part of an
   alias.
@@ -569,84 +404,16 @@ Rules:
 Billing is unchanged: the caller pays. A scoped API key may use a composite only if it may use
 *every* operand; otherwise it is a `403` naming the one it may not.
 
-## Multi-turn threads (`chat:thread`)
-
-`chat:chat`, `chat:messages` and `chat:responses` are single turns. `chat:thread` keeps a
-conversation, so the face sees earlier turns.
-
-The conversation is stored **locally** at `~/.faces/threads/<id>.json` (not on the server, and
-not in `catalog:backup`). Each turn sends the transcript back, causes included.
-
-```bash
-faces chat:thread socrates -m "What is justice?"      # prints the answer and a thread id
-faces chat:thread --id t_abc123 -m "Say more about that"
-faces chat:thread --list                              # newest first
-faces chat:thread --id t_abc123 --show                # the full transcript
-faces chat:thread --id t_abc123 --delete              # remove the local file
-```
-
-- `-m` or `--file PATH` gives the message.
-- **`--llm` and `--system` are read only when starting a thread**, then kept on it. Without
-  `--llm` the thread uses the face's default model. Passing either with `--id` prints a warning
-  and is ignored: start a new thread to change them.
-- **Per-turn flags** apply to the turn they are sent with: `--max-tokens`, `--temperature`,
-  `--no-stream`, `--style`, `--medium`, `--session`, `--compaction`, `--show-cause`, `--cause`
-  and `--oauth-only`. A refused turn is not saved, so the same message can be sent again.
-- To keep the exchange on the server instead, use `chat:chat --session`, not a thread: a
-  thread resends its transcript, which the state already holds. See "States and
-  compaction".
-- **`--json`** returns `{thread_id, model, provider, assistant, turns}`; `--list` an array of
-  `{id, face, model, turns, created_at, updated_at}`; `--show` the stored thread.
-
-## Streaming face chats
-
-A face's cause can take a while. Every `chat:*` command streams by default, and a streamed
-request waits for the cause as long as it takes. Most turns start within 20 seconds; past that,
-the response starts `200` and carries `: keep-alive` comment lines until the answer begins.
-
-`--no-stream` and `--json` are not streamed, and wait for the answer too. Past about 40 seconds
-the response starts `200` with `X-Faces-Held: 1`, then spaces, then the JSON. A refusal after
-that point comes back inside the `200` as `{"detail": ..., "error": {...}}` (Anthropic's error
-shape on `/v1/messages`), and the CLI reports its real status and code. A held response has no
-`X-Faces-Cost-USD`; the charge is in `usage`. Any face request still working after 300 seconds
-is stopped with a `504`. Do not wrap it in a retry loop.
-
-**Calling the API yourself:** set a timeout of at least 300 seconds for any request with a
-face, and when `X-Faces-Held` is set check the body for `error` first. A hand-written SSE reader must
-(1) skip every line starting with `:` and (2) treat an error event as a failure, since a late
-refusal can only arrive inside the stream:
-
-| endpoint | late refusal |
-|---|---|
-| `/v1/chat/completions` | `data: {"error": {"message": "...", "code": 503, "status": 503}}`, then `data: [DONE]` |
-| `/v1/responses` | `event: error` with `{"type": "error", "code": "503", "status": 503, "message": "..."}` |
-| `/v1/messages` | `event: error` with `{"type": "error", "error": {"type": "overloaded_error", "message": "...", "status": 503}}` |
-
-**Refusals.** No cause, no answer: when the cause cannot be given, the request is refused
-before the model is called, and nothing is charged.
-
-| code | meaning | do |
-|---|---|---|
-| `409` | The face has nothing compiled (asked for its cause) | Compile a source into it. Do not retry |
-| `422` | No message in the conversation for the face to answer | Fix the request. Do not retry |
-| `503` | The cause failed | Retry |
-| `503` | The model failed or is unavailable (`retryable` says whether to ask again) | Retry when `retryable` is true; when false, use another model |
-| `503` | Not streamed: the model did not finish its reply within 300 seconds | Ask for a shorter reply, or stream |
-| `504` | The face did not finish within 300 seconds | Retry |
-
 ## OAuth-only mode (`--oauth-only`): Connect and Pro
 
-`--oauth-only` and the `api_fallback` preference only matter on **Connect and Pro** with a
-linked ChatGPT account. `--oauth-only` guarantees the model's part is not paid from credits: a
-request the ChatGPT route cannot serve (a model that is not Codex-eligible, no link, a ChatGPT
-plan that does not serve it) is refused with `422 oauth_only_unavailable`, and nothing is
-charged. The cause still counts against the plan's allowance as usual. Available on `chat:chat`,
-`chat:messages`, `chat:responses`, `chat:thread`, `compile:thread:create` and
-`compile:thread:message`.
+`--oauth-only` and the `api_fallback` preference matter on **Connect and Pro** with a linked
+ChatGPT account. `--oauth-only` guarantees an interview's model is not paid from credits: a
+request the ChatGPT route cannot serve is refused with `422 oauth_only_unavailable`, and
+nothing is charged. Available on `compile:thread:create` and `compile:thread:message`.
 
 `api_fallback` is the account-level setting: `false` by default on Connect and Pro, so a
-ChatGPT failure is refused rather than billed. On Free it is always `true`, and setting it to
-`false`, or passing `--oauth-only`, is a `422`.
+ChatGPT failure or a used-up allowance is refused rather than billed. On Free it is always
+`true`, and setting it to `false`, or passing `--oauth-only`, is a `422`.
 
 ```bash
 faces account:preferences api_fallback false    # the default on Connect and Pro
@@ -658,7 +425,7 @@ faces account:preferences api_fallback true     # allow paying from credits when
 | Key | Values | Effect |
 |---|---|---|
 | `api_fallback` | `true` / `false` | When false, a ChatGPT failure or a used-up allowance is refused instead of paid from credits |
-| `default_model` | any chat model | The model new faces inherit when `--default-model` is not given |
+| `default_model` | any chat model | The model new faces store as their default when `--default-model` is not given |
 | `auto_style` | `on` / `off` / `default` | Build each face's style automatically once it has enough of its own writing in a medium. `default` follows the plan: on for Connect and Pro, off for Free |
 | `auto_style_thresholds` | `medium=words,...` | Words of the face's own writing before an automatic build, per medium. At least 500; `default` resets one. Merged into what is stored |
 
@@ -677,7 +444,7 @@ unless the user asks.**
 
 ## Decisions (`decide`)
 
-Chat gives you what a face would **say**. `faces decide` gives you what it would **decide**:
+`faces choices` gives you the options a face would weigh. `faces decide` gives you what it would **decide**:
 describe a situation, ask typed questions about it, and get back numbers, as this face. The
 face's cause for each question guides a **decision model**'s answer.
 
@@ -721,7 +488,7 @@ At most **10 questions with a face**, 32 with `--baseline`. A noul's `criteria` 
   (`"(a | b)"`), priced like one face.
 - **`gpt-6-luna`** is OpenAI's Decisions model: pass `--format openai` with it (it isn't served
   in System One). Up to 400 questions alone, 10 with a face. It's paid from credits only.
-- **Images** aren't supported in decisions or with a face (`422`); bare chat models still take them.
+- **Images** aren't supported in decisions or with a face (`422`).
 - **`--baseline`** asks the decision model alone, with no face: the number to compare a face's
   answer against, in about a second, costing only the decision model.
 - **`--format`** picks the request shape: `systemone` (the default; TypeSafe's Jev System One,
@@ -730,8 +497,9 @@ At most **10 questions with a face**, 32 with `--baseline`. A noul's `criteria` 
 - **The cause** comes back whenever a face is named: `causes` holds one per question, and
   `cause` is the first question's. `--show-cause` prints them to stderr. Name a face and ask
   **no questions** for its cause alone.
-- **`--session` / `--compaction`** attach the decision to a state, as on chat: it reads
-  the state so far and is stored with the premises in force.
+- **`--conversation` / `--compaction`** attach the decision to a state: it reads the state so
+  far and is stored with the premises in force. `--depends-on` says what it rests on; see
+  States and compaction. (`--session` is the old name for `--conversation`.)
 - **History:** outside a state, decisions keep none between requests. To chain them, put
   the earlier situations and what was decided into the state; do not replay earlier causes into
   it.
@@ -820,10 +588,9 @@ faces face:edit ada --specialty ""                   # clears it
 
 ## Per-face system prompt (`profile_addendum`)
 
-A face can store a system prompt fragment, sent to the model on every chat request with that
-face, alongside any per-request `--system` or `--instructions`. Use it for durable rules: output
-format, guardrails, tone, tool conventions. It is sent like a system prompt, so a determined
-caller can get the model to reveal it: never put anything there the face's users shouldn't see.
+A face can store a system prompt fragment. It was sent to the model on every chat request with
+that face; chat is retired, and choices, causes and decisions do not use it. It is still stored
+and returned to the owner.
 
 ```bash
 faces face:create --name "Support Bot" --alias support-bot --default-model claude-sonnet-4-6 \
@@ -840,7 +607,7 @@ faces face:get support-bot --full     # the whole prompt
 - `--profile-addendum`, `--profile-addendum-file` and `--clear-profile-addendum` are mutually
   exclusive; leaving all three out leaves it unchanged.
 - **Private:** returned only to the face's owner, never to anyone it is shared or published
-  with, and never echoed in chat responses.
+  with.
 - **Composites:** a persisted composite uses its own; a run-time composite borrows its **first
   operand's**.
 
@@ -921,12 +688,8 @@ forgiven; any other word is a `422` naming all eleven. Never guess one: ask.
 - A document's medium can be changed with `compile:doc:edit <id> --medium <medium>`, from the
   next compile, but never cleared.
 
-**The same flag does different work on chat**, worth holding apart:
-
-| surface | without `--medium` | what it does |
-|---|---|---|
-| `chat:*` | fine: inferred from the message | says what the reply is, so it is shaped for it. Never refused. `--style` applies a built style instead, and sets the medium too |
-| `compile:doc`, `compile:doc:create`, `compile:upload --kind document`, `compile:import --type document` | refused | says what the source is. Required |
+`--medium` is required on `compile:doc`, `compile:doc:create`, `compile:upload --kind document`
+and `compile:import --type document`: it says what the source is.
 
 **`--perspective`: by them or about them?** `first-person` for the person's own words (essays,
 letters, interview answers, talks); `third-person` for material *about* them (a biography, an
@@ -958,28 +721,15 @@ faces style:upload alice ./mail.jsonl
 faces face:sources alice --type thread --json | jq -r '.threads[] | "\(.id)  \(.medium)  \(.label)"'
 faces style:make alice --source THREAD_ID_1 --source THREAD_ID_2
 
-# 3. Check, then use it
+# 3. Check it
 faces style:versions alice
-faces chat:chat alice -m "Reply to the note below." --style email
 ```
 
 ### Using a built style
 
-Building does not apply it. Pass **`--style <medium>`** on a chat command:
+A style was applied by `--style` on the chat commands, which are retired with chat. No command
+applies a style now; builds still run and the styles stay on the face.
 
-```bash
-faces chat:chat alice -m "Reply to the note below." --style email   # the built email style
-faces chat:chat alice -m "Reply to the note below." --medium email  # an email, with no built style
-faces chat:chat alice -m "Reply to the note below."                 # neither
-```
-
-- A style adds roughly 2,000 to 3,500 input tokens to each request that uses it, billed as model
-  input (or nothing, on the linked ChatGPT plan). The exact figure for each request is in its `usage`.
-- `--style` needs a single face and a model; it applies only on the chat commands, not to
-  `decide` or the cause alone. It sets the medium too, so `--medium` is unnecessary with it
-  (a different `--medium` is a `400`).
-- A medium the face has no style for is a `400` that names the ones it has:
-  `This face has no email style. Its styles: essay.`
 - Every face carries `styles`: the media it has a built style for. `face:get` prints them,
   `face:list --has-style` filters to faces with any, and in `--json` it is a list:
 
@@ -987,8 +737,6 @@ faces chat:chat alice -m "Reply to the note below."                 # neither
 faces face:list --json | jq '.data[] | {alias, styles}'
 ```
 
-Read `styles` before offering `--style`, and offer only those media. `--medium` needs no build
-and can be offered for any medium.
 
 ### The corpus file
 
@@ -1267,8 +1015,8 @@ Do not retry: say it is read-only. Its label and medium are not content, so
 
 ## Face locking
 
-`face:lock <alias>` freezes a face; `face:unlock <alias>` thaws it. A locked face still reads
-and chats normally, but any write to it or anything it owns (editing it, its documents and
+`face:lock <alias>` freezes a face; `face:unlock <alias>` thaws it. A locked face can still be read
+and asked, but any write to it or anything it owns (editing it, its documents and
 threads, uploads, imports, style builds, deleting it) is a `409` mentioning `read-only`. Do
 not retry; unlock first. `face:get` shows a `read only` line and `face:list` a `[read only]`
 marker.

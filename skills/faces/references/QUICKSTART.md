@@ -178,20 +178,19 @@ Poll: `faces compile:doc:get DOC_ID --status-only --json | jq '{status, progress
 `failed`), and `progress` goes from 0 to 1. For everything at once: `faces compile:status`.
 Always poll with `--status-only`, which leaves the text out.
 
-## 6. Chat
-
-`chat:chat` routes each model to its endpoint. With a `--default-model` on the face, no `--llm`
-is needed.
+## 6. Ask it
 
 ```bash
-faces chat:chat alice -m "What matters most to you?"                          # on the face's default model
-faces chat:chat alice --llm claude-sonnet-4-6 -m "What matters most to you?"  # another model
+faces choices alice --state "A startup in Berlin offers me a design lead role at a lower salary." \
+  --question "Should I take the offer?"                                       # the options it would weigh
+faces choices alice --state "A startup in Berlin offers me a design lead role at a lower salary."   # the question it would ask
 faces causes alice -m "What matters most to you?"                            # the cause alone
 ```
 
-Every answer comes with the face's **cause**: the principal *why* behind it (`--show-cause`
-prints it too). `faces causes` returns the cause alone, with no model answering, and is billed
-for the cause only.
+`faces choices` returns the options the face would weigh, strongest first. Leave `--question`
+out and it proposes the question it would ask. For a situation over 3,000 tokens, or one your
+agent keeps building, put it in a state (`faces state:create`, `faces state:add`) and pass
+`--state-id`. `faces causes` returns the face's cause alone.
 
 ## 7. Check it worked
 
@@ -212,10 +211,8 @@ The face is ready once a source reads `synced`.
 - **Compose faces:** `faces face:create --name "Alice and Bob" --alias alice-and-bob --formula "alice | bob"`
 - **Ask what a face would decide:** `faces decide alice --state "..." --question "..."` (see
   [REFERENCE.md → Decisions](REFERENCE.md#decisions-decide))
-- **Compare causes:** get each face's cause on the same question with `faces causes <alias>
-  -m '<question>'`, then give both to a model with no face:
-  `faces chat:messages claude-sonnet-4-6 -m 'Alice: <cause>. Bob: <cause>. Compare them.'`
-  (a model with no face works with `chat:messages` and `chat:responses`)
+- **Compare faces on one question:** run `faces choices <alias> --state '…' --question '…'` for
+  each, or get each one's cause with `faces causes <alias> -m '<question>'`.
 - **Connect ChatGPT** (Connect or Pro): `faces auth:connect openai`. See [OAUTH.md](OAUTH.md).
 - **An API key:** `faces keys:create --name "my-key"` for programmatic access. See
   [AUTH.md](AUTH.md).

@@ -14,7 +14,7 @@ description: >
   causal models. Use even if Faces is not yet installed: the skill covers setup. Do
   NOT use for fine-tuning models, RAG or retrieval systems, fiction writing, or
   thematic analysis of transcripts.
-compatibility: Requires the faces CLI (npm install -g @faces-sh/cli@latest) and internet access to api.faces.sh.
+compatibility: Requires the faces CLI 1.1.0 or later (npm install -g @faces-sh/cli@latest) and internet access to api.faces.sh.
 ---
 
 # Faces Skill
@@ -23,7 +23,8 @@ Faces are **causal models**. A face is compiled from an author's own texts (docu
 interviews, conversation transcripts). When prompted, it returns a **cause**: the principal
 *why* that would motivate that author's response in the given context. The cause steers
 whichever model answers, so an agent keeps a consistent, specific point of view however long it
-runs. Faces can be chatted with, asked for decisions, compared, and composed.
+runs. Faces can be asked what they would do (`faces choices`), asked for decisions, compared, and
+composed. Chat is retired.
 
 This skill and its references are the documentation: start with
 [references/QUICKSTART.md](references/QUICKSTART.md) and
@@ -106,8 +107,8 @@ faces face:create --name "Name" --alias slug --default-model MODEL \
   `languages`, `background`. Any other key is a `422` naming it, and **nothing in that request
   is saved**: fix the key and send it all again. `faces face:attributes` lists them.
 - **`--profile-addendum "…"`** (or `--profile-addendum-file path.txt`, up to 100,000
-  characters) stores a system prompt fragment sent with every chat request to this face,
-  alongside any per-request `--system`. Use it for durable rules: tone, format, hard
+  characters) stores a system prompt fragment on the face. It was sent with every chat request;
+  chat is retired, and choices, causes and decisions do not use it. Use it for durable rules: tone, format, hard
   constraints. Edit with `face:edit --profile-addendum …`, remove with `face:edit
   --clear-profile-addendum`. Only the owner can read it through the API, but a determined
   caller can get the model to reveal it: never put anything there the face's users shouldn't see.
@@ -363,18 +364,9 @@ refused up front (`402 insufficient_credit_for_style_build`, with `estimated_usd
 charged to credits runs on the default build model. If a build fails on the ChatGPT link
 (`CHATGPT_AUTH`), the link has expired: `faces auth:connect openai`, then build again.
 
-**Building does not apply it.** Pass `--style <medium>` on a chat command. Style applies only
-on the chat commands; `faces causes` and `faces decide` do not use it:
-
-```bash
-faces chat:chat alias -m "Reply to the note below." --style email
-```
-
-A style adds roughly 2,000 to 3,500 input tokens to each request that uses it. A medium the
-face has no style for is a `400` naming the ones it has. `--medium <medium>` is different: it
-says what the reply is, needs no build, and is never refused. Every face carries `styles`, the
-media it has a built style for: `face:get` prints them and `face:list --has-style` filters to
-faces with any. Read it before offering `--style`.
+**Nothing applies a style now.** Styles were applied on chat, which is retired; `faces choices`,
+`faces causes` and `faces decide` do not use them. Builds still run and the styles stay on the
+face. Every face carries `styles`, the media it has a built style for.
 
 A face holds one style per medium, and version numbers count per medium:
 
@@ -409,111 +401,87 @@ anyway, so pass that on to the user.
 
 See [REFERENCE.md → Style](references/REFERENCE.md#style-how-a-face-writes-style).
 
-### 4. Chat
+### 4. Ask: what would the face do?
 
 ```bash
-faces chat:chat alias -m "message"                     # on the face's default model
-faces chat:chat alias --llm claude-sonnet-4-6 -m "…"   # on another model
-faces chat:chat alias -m "…" --show-cause              # also print the cause, to stderr
-faces causes alias -m "…"                              # the cause alone: no model answers
+faces choices alias --state "situation, in prose" --question "What should I do?"   # its options
+faces choices alias --state "situation, in prose"                                  # the question it would ask
+faces choices alias --state-id fs_... --question "…" --max-choices 3                 # a state as the situation
+faces causes alias -m "…"                                                            # the cause alone
 ```
 
-**Every answer from a face comes with its cause**: the principal *why* behind the face's
-response in this context. `--show-cause` prints it to stderr ahead of the answer (stdout stays
-the answer). `faces causes` (or `chat:chat --cause-only`) asks for the cause alone (the Causes
-API, `POST /v1/causes`): no model is called and only the cause is charged. Use it to bring one
-face's view into another prompt, or to steer your own model or pipeline. It also takes a
-situation (`--state`) with questions, for one cause per question.
+**`faces choices` is how to run a face** (`POST /v1/choices`). Describe the situation and ask a
+question; the face proposes the options it would weigh, strongest first, each a short name and a
+sentence in its own terms. Leave `--question` out and it proposes the question it would ask,
+with alternatives. The situation is `--state` (prose, **at most 3,000 tokens**; longer is a
+`422` that says to use a state) or `--state-id` (a state, below). With both, the prose is an
+**addendum for that one call**: read with the state, never saved to it. Anything that should
+persist must be written to the state as premises (`faces state:add --premise`). `--model` is `maestro-1` (the default) or `maestro-1-flash`, which answers sooner
+and costs 10 times more when a question is asked. A call takes about 10 to 30 seconds.
 
-In `--json` the cause is marked as the face's: `message.cause` on chat completions, the
-`reasoning` item with id `rs_faces_…` on responses, the `thinking` block with signature
-`faces-reasoning` on messages. A model's own reasoning is separate: never present it as the
-face's cause, and never present the cause as what the face said.
+Billing is on the call's `usage`: the tokens it processed, input and output. On Free both are paid
+from credits ($0.42 and $1.00 per million on `maestro-1`); on Connect and Pro the input counts
+against the plan's allowance, and past it the call is paid from credits only with `api_fallback`
+on (else `429`). A refused call is never charged.
 
-**Routing.** `chat:chat` sends each model to its endpoint in the model catalog. Codex-eligible
-models (`codex_eligible: true` in `GET /v1/models`) go to `/v1/responses`, where on Connect and
-Pro with ChatGPT linked they run on the ChatGPT plan; every other model is paid from credits at
-the model's listed price plus 5%. Read `codex_eligible` from the catalog (`faces models:list
---chatgpt`) rather than keeping a list.
-`chat:messages` and `chat:responses` call one endpoint directly and need the model named
-(`alias@model`). See [REFERENCE.md → Chat routing](references/REFERENCE.md#chat-routing).
+**Chat is retired.** `/v1/chat/completions`, `/v1/responses` and `/v1/messages` answer `410
+chat_retired`, and the `chat:*` commands are gone from the CLI. If the user asks to "chat" with a
+face, use `faces choices` (or `/facechat`, which does). Do not look for a workaround.
 
-In `--json`, `_meta` carries `provider` (the model's lab), `billing` (`oauth`: it ran on the
-linked ChatGPT plan; `credits`: paid from the balance) and `cost_usd`. **Branch on `billing`**,
-never on `provider`. Branch on a refusal's status and `error_code`, never on its message text.
-Connect and Pro users can add `--oauth-only` so the model's part is never paid from credits: a
-request the ChatGPT route cannot serve is refused (`422 oauth_only_unavailable`) instead.
+`faces causes` asks for the cause alone (`POST /v1/causes`): the principal *why* behind the
+face's response in this context, billed at the cause rate. Use it to bring one face's view into
+another prompt, or to steer your own model or pipeline. It also takes a situation (`--state`)
+with questions, for one cause per question.
 
-**Supplying the cause yourself:** `--cause "TEXT"` (or `--cause-file PATH`) gives the face its
-cause for this turn, and the model answers on it. No cause is generated, so **none is charged**
-(only the answering model is), and it is faster. It needs a model named. Use it when you or the
-user already know how the face reads the moment.
-
-**Streaming.** Every `chat:*` command streams by default, and a streamed request waits for the
-cause however long it takes. `--no-stream` and `--json` wait for the answer too: a slow one is
-held open, and a refusal after that point is still reported with its real status and code. Do not add
-your own retry loop.
-
-Refusals of a face chat end "Nothing was charged.":
+Refusals end "Nothing was charged.":
 
 | code | meaning | do |
 |---|---|---|
-| `409` | The face has nothing compiled (asked for its cause) | Compile a source into it (for a composite, into each face); do not retry |
-| `422` | No message in the conversation for the face to answer | Fix the request; do not retry |
-| `503` | The cause failed | Retry |
-| `503` | The model failed or is unavailable (`retryable` says whether to ask again) | Retry when `retryable` is true; when false, use another model |
-| `503` | Not streamed: the model did not finish its reply within 300 seconds | Ask for a shorter reply, or stream (the default) |
-| `504` | The face did not finish within 300 seconds | Retry |
+| `409` | The face has nothing compiled, or was compiled before the current release | Compile (or recompile) a source; do not retry |
+| `422` | No situation, prose over 3,000 tokens, an unknown `--model`, or an empty state | Fix the request; for long prose, use a state |
+| `429` | Rate limit, or the plan's allowance is used and `api_fallback` is off | Wait, or turn `api_fallback` on |
+| `402` | No credit | Top up |
+| `503` | The face's options failed | Retry |
 
-A refusal can also arrive **inside** a stream that already started `200`: the CLI prints it and
-exits non-zero. A face with nothing compiled still answers a chat, from its name, profile
-addendum and attributes, with no cause.
-
-**Calling the API yourself instead of the CLI?** Set a timeout of at least 300 seconds for any
-request with a face. Not streamed, a response with `X-Faces-Held: 1` can carry an `error` in
-its `200` body, so check for it before reading the answer. A hand-written SSE reader must skip lines
-starting with `:` (keep-alives) and treat an error event as a failure. See
-[REFERENCE.md → Streaming](references/REFERENCE.md#streaming-face-chats).
-
-**States.** `chat:chat` is a single turn. A **state** is something your agent builds and Faces
-keeps and watches: your **premises** (named facts you declare), the decisions faces made, each
-reply with its cause, and your messages, each decision kept with the premises it was made under.
-Each turn sends only the new message; the face reads the rest. Over HTTP it is `/v1/states`
-(`/v1/conversations` is a deprecated alias), joined with the `conversation` field. The CLI opens
-one with `session:create` and joins it with `--session` (old names that still work).
+**States.** A **state** is the situation your agent builds, kept on the server: **premises**
+(named facts, each with a status and what it depends on), the decisions faces made, and your
+messages. Hand it to a face with `faces choices --state-id`, or join `decide` and `causes` to it
+with `--conversation`. Over HTTP it is `/v1/states` (`/v1/conversations` is a deprecated alias).
 
 ```bash
-faces session:create alias                               # prints the state id (fs_...)
-faces chat:chat alias -m "…" --session fs_...            # send only the new message
-faces session:compact fs_...                             # prints a compaction id (fcmp_...)
-faces chat:chat alias -m "…" --compaction fcmp_...       # reads the summary instead of the history
+faces state:create alias                                  # prints the state id (fs_...)
+faces state:add fs_... --premise rent_rises='"12% in March"' --premise-status rent_rises=assumed \
+  --premise-description rent_rises="the landlord says rent goes up 12% in March"
+faces state:add fs_... --premise can_afford=false --premise-depends-on can_afford=rent_rises \
+  --premise-description can_afford="the shop can carry the higher rent"
+faces decide alias --conversation fs_... --depends-on can_afford --state "…" --question "…"
+faces choices alias --state-id fs_... --question "What should the shop do?"
+faces state:items fs_...                                  # premises with their status, decisions
+faces state:compact fs_...                                # prints a compaction id (fcmp_...)
 ```
 
-`--session` and `--compaction` work on every `chat:*` command, `faces causes` and
-`faces decide`. Do not add `--session` to `chat:thread`: a thread resends its local transcript,
-which the state already holds, so earlier messages are stored twice. `chat:thread` is
-the local alternative, resumed by `--id`
-([REFERENCE.md](references/REFERENCE.md#multi-turn-threads-chatthread)).
+**Premises.** A premise is `--premise key=value` with `--premise-description` the first time a
+key is used. `--premise-status key=status` is `stated` (default), `verified`, `assumed`,
+`unresolved` or `invalidated`; `--premise-depends-on key=a,b` names the premise keys and
+decision ids it rests on (`key=` clears it). **Only `invalidated` spreads:** an invalidated
+premise invalidates everything that depends on it, directly or through others, and setting it
+back restores them. `state:add` prints every status that changed (`status_changes` over HTTP).
+What you read back is the effective `status`; `asserted_status` is what the agent set, shown
+when they differ, and `because` names what invalidated it. Decide with `--depends-on` to say
+what a decision rests on; `decide` prints its decision id for later `--depends-on`. When a
+value changes, `decisions_made_under_old_values` lists the decisions that rested on the old one.
+Nothing is decided again for you: revisit the ones that matter.
 
-**Premises.** Declare the facts your decisions depend on (free):
-`faces conversation:add fs_... --premise budget_usd=50000 --premise-description budget_usd="the most we can spend this year"`,
-or `--premise` on `chat:chat`, `decide` and `causes` with `--conversation`, or over HTTP with
-`POST /v1/states/{id}/items` and
-`{"premises": [{"key": "budget_usd", "value": 50000, "description": "the most we can spend this year"}]}`.
-The description is required the first time a key is used. Each decision is stored with the
-premises in force when it was made. When you change a value, the response's
-`decisions_made_under_old_values` lists every earlier decision made under the old one, with
-`changed: {key: {was, now}}`. Nothing is decided again for you: revisit the ones that matter.
-
-Turns cost what they cost without a state; opening, reading and adding items are free;
-compacting is billed at the cause rate. A state expires 30 days after its last use. See
+Opening, reading and adding to a state are free; turns cost what they cost without one;
+compacting is billed at the cause rate. A state expires 30 days after its last use. The
+`conversation:*` and `session:*` commands are older names for `state:*`. See
 [REFERENCE.md → States](references/REFERENCE.md#states-and-compaction).
 
-**System and published faces:** every account can chat with a curated set of faces under the
-`head` account, and with any face published or shared with it, as `owner:alias@model`, for
-example `faces chat:chat head:socrates@gpt-5.6-terra -m "…"`. List them with
+**System and published faces:** every account can ask a curated set of faces under the
+`head` account, and any face published or shared with it, as `owner:alias`, for
+example `faces choices head:socrates --state "…" --question "…"`. List them with
 `faces face:list --system` (`--public` for every published face, `--shared` for those shared
-with you). A bare alias only ever resolves your own faces. The caller pays for the answer; the
+with you). A bare alias only ever resolves your own faces. The caller pays for the call; the
 owner is never charged. See
 [REFERENCE.md](references/REFERENCE.md#system--published-faces).
 
@@ -548,9 +516,8 @@ against a Connect or Pro allowance (or is paid on Free), and the decision model 
 from credits**, on every plan: with no credit it is a `402`. See
 [REFERENCE.md → Decisions](references/REFERENCE.md#decisions-decide).
 
-**Run-time composites:** put a formula where the face goes to chat with a blend of faces, with no
-create step: `faces chat:chat "(alice | bob)@claude-sonnet-4-6" -m "…"` (or `--formula "alice |
-bob" --llm …`). See [§5](#5-compare--compose).
+**Run-time composites:** put a formula where the face goes to ask a blend of faces, with no
+create step: `faces choices "(alice | bob)" --state "…" --question "…"`. See [§5](#5-compare--compose).
 
 ### 5. Compare & compose
 
@@ -575,16 +542,14 @@ message and pick a formula whose result is not empty.
 compiled sources, or one another composite uses, is a `409`: make a new composite with
 `face:create --formula` instead.
 
-**Compose on the fly, without persisting:** put the formula where the face goes. An answer needs
-an explicit `@model` (a run-time composite has no default model); its cause alone does not:
+**Compose on the fly, without persisting:** put the formula where the face goes:
 
 ```bash
-faces chat:chat "(alice | bob)@claude-sonnet-4-6" -m "What should we do?"
-faces chat:chat --formula "alice | bob" --llm claude-sonnet-4-6 -m "What should we do?"
+faces choices "(alice | bob)" --state "…" --question "What should we do?"
+faces causes "(alice | bob)" -m "What should we do?"
 ```
 
-A run-time composite **answers under the name of its first operand** (`(alice | bob)` answers as
-alice); use `face:create --formula` for a reusable face with its own name. See
+Use `face:create --formula` for a reusable face with its own name. See
 [REFERENCE.md](references/REFERENCE.md#run-time-composite-faces).
 
 ### 6. Benchmark (optional)
@@ -697,7 +662,7 @@ with `faces config:set`.
 | `409 build_in_progress` | A style build for that face and medium is running. `faces style:status JOB_ID --wait`; do not start another |
 | `422 max_tokens_exhausted` | The model spent all of `--max-tokens` thinking before writing a reply. The tokens are billed. Retry once with a larger `--max-tokens`; not with the same one |
 | `403` naming a signed-in session | The command changes the account (plan, card, top-up, ChatGPT link, sharing, publishing, deleting a face) and only an API key is saved. `faces auth:login`, then retry |
-| `403` naming a key restricted to faces | The saved API key is limited to some faces: it can chat with them, get their causes and decisions, open states, and read them. Use an unrestricted key or `faces auth:login` |
+| `403` naming a key restricted to faces | The saved API key is limited to some faces: it can ask them (choices, causes, decisions), open states, and read them. Use an unrestricted key or `faces auth:login` |
 | `422 empty_composite` | The formula's result is empty. Show the message; use a formula whose result is not empty |
 | `503 oauth_incomplete` | ChatGPT stopped its reply partway, twice. Nothing was charged; retry |
 | `404` on a state (conversation, session) or compaction | Unknown, expired, closed, another account's, or opened with another face. Nothing was charged. Open a new state |
@@ -708,7 +673,7 @@ with `faces config:set`.
 ## Related skills
 
 - `/facemake`: guided face creation (interview, research, sketch, compile)
-- `/facechat`: chat with any face or team in your catalog
+- `/facechat`: ask any face or team in your catalog what it would do
 - `/faceteam`: compose faces into teams with collaboration protocols
 - `/manyface`: turn a skill into one where each step is run by the right face
 
@@ -721,8 +686,7 @@ with `faces config:set`.
   catalog/<alias>/      # one FACE.md per face
   backups/              # timestamped JSON backups (faces and groups)
   teams/<team-slug>/    # one TEAM.md per group, in a folder named by a slug of the group name
-  threads/              # chat:thread conversation history
-  models-cache.json     # cached model catalog for chat routing
+  models-cache.json     # cached model catalog
 ```
 
 ## FACE.md schema

@@ -1,12 +1,12 @@
 ---
 name: facechat
 description: >
-  Chat with any face in your catalog. Invoke as /facechat <alias> <message>
-  to send a message directly (e.g. /facechat socrates How are you?),
-  /facechat <alias> to start a conversation, or /facechat with no argument
-  to browse your catalog and pick a face. Trigger when the user says "chat
-  with a face", "talk to <name>", "ask <name>", or wants to have a
-  conversation with a compiled face. Also trigger on /facechat.
+  Ask any face in your catalog what it would do. Invoke as /facechat <alias> <message>
+  (e.g. /facechat socrates Should I take the job?), /facechat <alias> to start, or
+  /facechat with no argument to browse your catalog and pick a face. The face proposes
+  the options it would weigh, or the question it would ask. Trigger when the user says
+  "chat with a face", "talk to <name>", "ask <name>", or wants a compiled face's view.
+  Also trigger on /facechat.
 allowed-tools:
   - Bash
   - Read
@@ -17,7 +17,7 @@ allowed-tools:
   - WebFetch
 ---
 
-# /facechat: Chat with a Face
+# /facechat: Ask a Face
 
 ## Preamble
 
@@ -31,6 +31,9 @@ echo "EXIT:$?"
 ```
 
 If `NOT_INSTALLED` (the auth check then prints `EXIT:127`, command not found): run `npm install -g @faces-sh/cli@latest` and re-run the preamble.
+
+This skill needs the CLI's `faces choices` (version 1.1.0 or later). If `faces choices --help`
+says the command is not found, run `npm install -g @faces-sh/cli@latest`.
 
 If `UPDATE_AVAILABLE`: run `npm install -g @faces-sh/cli@latest`. Once auth triage below reaches `EXIT:0`, run `faces catalog:doctor --fix` to migrate local catalog files. It needs a signed-in account, so before sign-in it fails with "Authentication required"; that is not a broken update.
 
@@ -66,7 +69,7 @@ files. Always mask them (e.g. `sk-faces-...dN`).
 The argument string after `/facechat` is parsed as: first word is the alias,
 everything after it is the message. Examples:
 
-- `/facechat socrates How are you?`: alias=`socrates`, message=`How are you?`
+- `/facechat socrates Should I take the job?`: alias=`socrates`, message=`Should I take the job?`
 - `/facechat socrates`: alias=`socrates`, no message
 - `/facechat`: no alias, no message (browse the catalog)
 
@@ -75,7 +78,7 @@ everything after it is the message. Examples:
 The alias can name a **face** or a **team** (several faces with a collaboration
 protocol). Check both.
 
-**If alias provided** (`/facechat socrates` or `/facechat socrates How are you?`):
+**If alias provided** (`/facechat socrates` or `/facechat socrates Should I take the job?`):
 
 ```bash
 # Check face first, then team
@@ -87,8 +90,8 @@ SLUG=$(echo "$ALIAS" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/
 ls ~/.faces/teams/$SLUG/TEAM.md 2>/dev/null
 ```
 
-- A face found: single-face chat (see **Chat** below).
-- A team found (by name in `group:list`, or a local TEAM.md): team chat (see **Team Chat** below).
+- A face found: ask the face (see **Ask** below).
+- A team found (by name in `group:list`, or a local TEAM.md): ask the team (see **Team** below).
 - Both found: the face wins (teams should have distinct names).
 - If neither found, check for close matches:
 
@@ -114,7 +117,7 @@ ls ~/.faces/teams/ 2>/dev/null
 Present as a numbered list showing alias, name/description, and whether it's
 a face or team. Ask the user:
 
-> **Your catalog.** Who do you want to chat with?
+> **Your catalog.** Who do you want to ask?
 >
 > **Faces:**
 > [numbered list of faces]
@@ -124,66 +127,64 @@ a face or team. Ask the user:
 >
 > Pick a number, or type a name/alias.
 
-## Chat
+## Ask
 
-Once the face is resolved, start a **thread** so the face remembers the
-conversation across turns (`chat:chat` is stateless and forgets each turn):
+Chat is retired on Faces: a face does not reply in conversation. Instead it is **asked**: given a
+situation and a question, it proposes the options it would weigh, strongest first, each a short
+name and a sentence in its own terms (`faces choices`). Say so once if the user expected a chat.
 
-```bash
-faces chat:thread ALIAS -m "MESSAGE" --json
-```
+Split what the user wrote into the **situation** (the facts) and the **question** (what to
+decide). If the user gave only a situation, ask with no question: the face proposes the question
+it would ask. If they gave no situation, ask them for one:
 
-Keep the `thread_id` from the response: every follow-up uses it.
-
-If the user didn't include a message with the alias, ask what they want to
-discuss. Ask the user:
-
-> **Chatting with NAME.** What would you like to ask or discuss?
-
-### Conversation loop
-
-After each response from the face, the user can:
-- Send another message (continue the conversation)
-- Type `/facechat` again to switch to a different face
-- Move on to other work
-
-For follow-up messages in the same conversation, resume the same thread by id so
-the face keeps full context:
+> **Asking NAME.** What is the situation, and what do you want to decide?
 
 ```bash
-faces chat:thread --id THREAD_ID -m "MESSAGE"
+faces choices ALIAS --state "SITUATION" --question "QUESTION" --json
+faces choices ALIAS --state "SITUATION" --json        # no question: the face proposes one
 ```
 
-Start a fresh thread (omit `--id`, pass the alias) when switching faces or when
-the user clearly begins a new topic.
+Show the options as a numbered list, `name` in bold with its description, and say they are the
+face's, strongest first. With no question, show the face's `question` and its `alternatives`,
+and offer to ask it.
 
-### Model override
+`--state` takes at most 3,000 tokens of prose. For more, use a state (below).
 
-If the user wants a different model than the face's default, pass `--llm` **when
-starting the thread** (it's frozen for the life of the thread; start a new
-thread to change it):
+### Follow-ups: keep a state
+
+For a conversation that goes on, keep the situation on the server as a **state**, so each
+question reads everything established so far:
 
 ```bash
-faces chat:thread ALIAS -m "MESSAGE" --llm MODEL
+faces state:create ALIAS --json                         # once; keep the id
+faces state:add STATE_ID --premise KEY=VALUE --premise-description KEY="what it means"
+faces choices ALIAS --state-id STATE_ID --question "QUESTION" --json
 ```
+
+Write each fact the user establishes as a premise, with a status when it matters
+(`--premise-status KEY=assumed`, `verified`, `unresolved`, `invalidated`) and what it rests on
+(`--premise-depends-on KEY=other_key`). When the user says something no longer holds, set it
+`invalidated`: everything resting on it is invalidated too.
+
+Prose sent with `--state` beside `--state-id` is an **addendum for that one call**: the face
+reads it with the state, and it is **never saved**. Anything that should still hold on the next
+question must be written with `faces state:add --premise`. Do not rely on the addendum to carry
+facts forward.
+
+Start a fresh state when switching faces or when the user clearly begins a new topic.
+
+### Model
+
+`--model maestro-1` is the default. `--model maestro-1-flash` answers sooner and costs 10 times
+more when a question is asked; use it only when the user asks for speed.
 
 ### Bringing in another face
 
-To bring another face's view into the conversation, get its cause on the
-question (the principal *why* behind its response) with
-`faces causes OTHER -m "QUESTION"`, and include it in the message.
+To bring another face's view in, ask it the same question (`faces choices OTHER ...`), or get
+its cause (the principal *why* behind its response) with `faces causes OTHER -m "QUESTION"`
+and add it to the situation.
 
-### Long conversations
-
-For a long conversation, keep it on the server instead of a thread: open a
-state with `faces session:create ALIAS` (session is its old name),
-send each new message with `faces chat:chat ALIAS -m "MESSAGE" --session ID`,
-and when it grows, `faces session:compact ID` and continue with
-`--compaction COMPACTION_ID`. Do not add `--session` to `chat:thread`: the
-thread resends its transcript, which the state already holds. See the
-`/faces` skill's REFERENCE.md, "States and compaction".
-
-## Team Chat
+## Team
 
 When the target is a team, read the TEAM.md and execute the mermaid protocol
 diagram mechanically.
@@ -206,15 +207,16 @@ the file.
 
 The mermaid diagram uses three shapes. Each has one rule:
 
-- `(alias)` **rounded rectangle**: call the face:
-  `faces chat:chat alias -m "INPUT"` where INPUT is the concatenated output
-  from all incoming edges. Format each input clearly:
+- `(alias)` **rounded rectangle**: ask the face:
+  `faces choices alias --state "INPUT" --question "QUESTION"` where QUESTION is the user's
+  question and INPUT is the concatenated output from all incoming edges. Format each input
+  clearly:
   ```
   [from Query]: <the user's original message>
-  [from face-a]: <face-a's response>
+  [from face-a]: <face-a's options>
   ```
-  A member you do not own is `owner:alias` and needs a model named:
-  `faces chat:chat owner:alias@MODEL -m "INPUT"`.
+  A member you do not own is `owner:alias`: `faces choices owner:alias --state "INPUT" ...`.
+  Keep INPUT under 3,000 tokens; summarize earlier rounds if it grows past that.
 - `[text]` **sharp rectangle**: you (the orchestrating agent) carry out the
   instruction described in the text. The text IS the instruction.
 - `{text}` **diamond**: you evaluate the condition described in the text
@@ -231,7 +233,7 @@ and ends at the `[Response]` node (what you show the user).
 
 1. Start at `[Query]`: seed it with the user's message.
 2. Follow outgoing edges. For each node you reach:
-   - `(face)`: call `faces chat:chat` with the concatenated inputs.
+   - `(face)`: call `faces choices` with the concatenated inputs.
    - `[instruction]`: carry out the instruction yourself.
    - `{condition}`: evaluate and branch.
 3. If an edge loops back (e.g. round-robin), increment the round counter.
@@ -243,11 +245,11 @@ and ends at the `[Response]` node (what you show the user).
 
 Show each face's contribution with attribution so the user sees who said what:
 
-> **skeptic:** [response]
+> **skeptic:** [options]
 >
-> **builder:** [response]
+> **builder:** [options]
 >
-> **strategist:** [response]
+> **strategist:** [options]
 >
 > **[Tally/Decision/Final node label]:** [final output]
 

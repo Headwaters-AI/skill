@@ -8,27 +8,26 @@ output.
 | plan | price | what it includes |
 |---|---|---|
 | `free` | $0 | Everything is paid as it goes, from credits |
-| `connect` | $17/month | The allowances below; Codex-eligible models (`codex_eligible: true` in `GET /v1/models`) run on a linked ChatGPT plan at `/v1/responses` |
-| `pro` | $49/month | Larger allowances, and the same ChatGPT route |
+| `connect` | $17/month | The allowances below; with ChatGPT linked, interviews and style builds run on the ChatGPT plan |
+| `pro` | $49/month | Larger allowances, and the same ChatGPT link |
 
-A subscription is an **allowance**, not a fee per request. It covers compiling and a face's
-**cause** (in chat, `/v1/causes` and decisions), up to the limits below. The **answering
-model** (`alias@model`, or a decision model) is never part of it: on every plan it is paid at
-the model's listed price plus 5%, unless it runs on the linked ChatGPT plan. So a Connect or Pro
-user still needs credit for most chats, and always for `faces decide`.
+A subscription is an **allowance**, not a fee per request. It covers compiling, choices and a
+face's **cause** (`/v1/causes` and decisions), up to the limits below. A **decision model** is
+never part of it: on every plan it is paid at the model's listed price plus 5%, so `faces
+decide` always needs credit.
 
 | allowance | Connect | Pro |
 |---|---|---|
-| compile, per month | 250k source tokens | 1M source tokens |
-| cause, per month | 10M tokens | 25M tokens |
-| cause, per week | 2.5M | 6.25M |
-| cause, per 5 hours (rolling) | 640k | 1.6M |
+| compile, per month | 500k source tokens | 1.5M source tokens |
+| choices and causes, per month | 25M tokens | 75M tokens |
+| choices and causes, per week | 6.25M | 18.75M |
+| choices and causes, per 5 hours (rolling) | 1.6M | 4.8M |
 
 - **Compile** counts a source's tokens **each time** it is compiled; a recompile counts again.
-- **A cause** counts the tokens it read plus 1,500. A cause reads the message it answers and up
-  to the four turns before it, within 30,000 tokens; on Connect and Pro a chat with `@model`
-  reads within 10,000. A face alone and decisions read within 30,000 on every plan;
-  `/v1/causes` with messages reads every message sent, at most 30,000 tokens per request.
+- **Choices** counts the call's `usage.input_tokens`, the input tokens it processed; on
+  `maestro-1-flash` with a question, 10 times that.
+- **A cause** counts the tokens it read plus 1,500. `/v1/causes` with messages reads every
+  message sent, at most 30,000 tokens per request.
 - The month is the subscription's 30-day window, weeks are 7-day blocks of it, and the 5-hour
   window rolls.
 
@@ -44,15 +43,17 @@ user still needs credit for most chats, and always for `faces decide`.
 
 | | rate |
 |---|---|
-| A cause (chat, causes, decisions) | $0.75 per million tokens: the tokens it read plus 1,500 |
-| Compile | $25 per million source tokens |
-| Rush compile (`--rush`) | the rush rate, `compile.rush_usd_per_million_source_tokens` in `GET /v1/rates` |
-| Any model you name (`@model`, a decision model) | the model's listed price plus 5% |
+| Choices, `maestro-1` | $0.42 per million input tokens, $1.00 per million output tokens, as `usage` reports them |
+| Choices, `maestro-1-flash` with a question | $4.20 and $10.00 per million; without a question, as `maestro-1` |
+| A cause (causes, decisions) | $0.75 per million tokens: the tokens it read plus 1,500 |
+| Compile | $16 per million source tokens |
+| Rush compile (`--rush`) | $21 per million source tokens |
+| A decision model | the model's listed price plus 5% |
 
 The live figures are public at `GET /v1/rates` (no key needed), and per model in the model
-catalog (`faces models:list`, or `GET /v1/models`): the cause model is `faces-causes-latest`
-and the compile model `faces-compile-latest` (`faces models:list --kind cause,compile`). Quote
-them from there, not from memory.
+catalog (`faces models:list`, or `GET /v1/models`): the choices models are `maestro-1` and
+`maestro-1-flash` (`faces models:list --kind choices`), the cause model `faces-causes-latest`
+and the compile model `faces-compile-latest`. Quote them from there, not from memory.
 
 ## Check the plan and its allowances
 
@@ -65,14 +66,15 @@ Shows the plan, the renewal date and, on a paid plan, a meter of each allowance:
 
 ```
 Connect allowances (tokens):
-  causes, rolling 5 hours  3018 of 640k (0%)  rolls
-  causes, this week        3018 of 2.5M (0%)  resets 2026-10-26 09:44 UTC
-  causes, this month       32.5k of 10M (0%)  resets 2026-10-28 09:44 UTC
-  compile, this month      4072 of 250k (2%)  resets 2026-10-28 09:44 UTC
+  causes, rolling 5 hours  3018 of 1.6M (0%)  rolls
+  causes, this week        3018 of 6.25M (0%)  resets 2026-10-26 09:44 UTC
+  causes, this month       32.5k of 25M (0%)  resets 2026-10-28 09:44 UTC
+  compile, this month      4072 of 500k (0%)  resets 2026-10-28 09:44 UTC
 ```
 
 In `--json`, `allowances` holds `cause_5h`, `cause_week`, `cause_month` and `compile_month`,
-each `{limit, used, remaining, resets_at}`. It is `null` on Free. `cause_5h` rolls, so its
+each `{limit, used, remaining, resets_at}`; the `cause_*` ones are the choices and causes
+allowance. It is `null` on Free. `cause_5h` rolls, so its
 `resets_at` is `null`. `rates` carries the pay-as-you-go rates.
 
 ## Subscribe

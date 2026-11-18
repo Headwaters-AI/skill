@@ -12,7 +12,7 @@ so your agents keep a consistent, specific point of view however long they run. 
 system for making faces and putting them to work:
 
 - **`/facemake`**: create a face from scratch. Interview, research, compile.
-- **`/facechat`**: chat with any face or team in your catalog. Pass an alias or browse to pick one.
+- **`/facechat`**: ask any face or team in your catalog what it would do. Pass an alias or browse to pick one.
 - **`/faceteam`**: compose several faces into a team with a collaboration protocol.
 - **`/manyface`**: turn any agent skill into one where every step that needs judgment is run by the right face.
 - **`/faces`**: the core CLI operations, for direct access to the platform.
@@ -157,18 +157,21 @@ Claude: [imports Wikipedia bio, Scientific American essay, Electrodynamics paper
         [compiles Scientific American essay: 9.8k tokens]
         [compiles Einstein-Besso letters: 16.4k tokens]
         Done. 4 sources compiled, 51.5k tokens.
-        Chat with him anytime: /facechat einstein
+        Ask him anytime: /facechat einstein
 ```
 
-### Chat with a face
+### Ask a face
 
 ```
-You:    /facechat einstein "I'm stuck. I have two competing models and the data fits both."
-Einstein: That is not a problem: that is a gift. When two theories
-          explain the same facts, you do not yet understand what you
-          are really measuring. The question is not which model is
-          correct. The question is: what experiment would make them
-          disagree? Find the disagreement and you find the physics...
+You:    /facechat einstein "I have two competing models and the data fits both. Which do I pursue?"
+Claude: Einstein would weigh, strongest first:
+
+        1. Empirical testing
+           Collect more data to distinguish between the models, as only experiment can reveal nature's choice.
+        2. Theoretical refinement
+           Improve the models' mathematical frameworks, as uncertainty demands deeper conceptual clarity before deciding.
+        3. Pedagogical clarity
+           Simplify the problem by comparing the models' core assumptions, using analogies to guide intuition.
 
 You:    /facechat
 Claude: Your catalog:
@@ -180,14 +183,10 @@ Claude: Your catalog:
         Teams:
         3. research-review-panel: round-robin critique panel
 
-        Who do you want to chat with?
+        Who do you want to ask?
 
 You:    2
-Claude: Chatting with skeptic. What would you like to ask or discuss?
-
-You:    Is my startup idea defensible?
-Skeptic: Define "defensible." You mean a moat? Because if your answer
-         is "we'll move faster," that's not a moat: that's a prayer...
+Claude: Asking skeptic. What is the situation, and what do you want to decide?
 ```
 
 ### Build a team
@@ -217,7 +216,7 @@ Claude: [checks catalog: finds einstein, creates 2 new faces]
         TEAM.md saved to ~/.faces/teams/research-review-panel/
 ```
 
-### Chat with a team
+### Ask a team
 
 ```
 You:    /facechat research-review-panel "Here's my draft paper on memory consolidation in sleep..."
@@ -269,10 +268,10 @@ Claude: [reads the skill, decomposes into 5 steps]
 | Skill | What it does |
 |-------|-------------|
 | `/facemake` | **Guided face creation.** Interview → research (real URLs via web search) → sketch FACE.md → iterate with the user → compile → optionally build a style. Quick mode: `/facemake "Person Name"` skips the interview. |
-| `/facechat` | **Chat with any face or team.** `/facechat einstein` to chat with a face, `/facechat review-panel` to run a team's protocol, or `/facechat` to browse your catalog and pick. Supports model override. |
+| `/facechat` | **Ask any face or team.** `/facechat einstein` to ask a face what it would do, `/facechat review-panel` to run a team's protocol, or `/facechat` to browse your catalog and pick. |
 | `/faceteam` | **Team composition.** Composes faces into a team with a self-sufficient mermaid protocol diagram. Three shapes: `(face)` rounded rects get called, `[instruction]` sharp rects the agent executes, `{condition}` diamonds the agent branches on. Produces a TEAM.md in `~/.faces/teams/`. |
 | `/manyface` | **Skill orchestrator.** Takes an existing skill (or designs one from scratch), decomposes it into steps, determines which need a solo face vs. a team vs. no face, and outputs a `manyfaced-` skill directory. |
-| `/faces` | **Core CLI.** Direct access to the faces platform: create faces, compile documents, import YouTube videos, build styles, chat, get causes, ask for decisions, keep states on the server, compare faces, compose them with set algebra, benchmark, manage API keys, billing, account preferences, and backup/restore. |
+| `/faces` | **Core CLI.** Direct access to the faces platform: create faces, compile documents, import YouTube videos, build styles, ask a face what it would do, get causes, ask for decisions, keep states on the server, compare faces, compose them with set algebra, benchmark, manage API keys, billing, account preferences, and backup/restore. |
 
 ## The hierarchy
 
@@ -298,7 +297,7 @@ A manyfaced skill's SKILL.md is a conductor's score. It says: "In step 1, use th
   backups/                        # timestamped JSON backup snapshots
 ```
 
-Everything under `~/.faces/` is the Faces ecosystem. Catalog and teams compound independently across projects and sessions. Chat with any face via `/facechat`.
+Everything under `~/.faces/` is the Faces ecosystem. Catalog and teams compound independently across projects and sessions. Ask any face via `/facechat`.
 
 ## FACE.md format
 

@@ -67,8 +67,9 @@ authorization for Codex' at chatgpt.com, Settings, Security first."*
 `openai  connected as you@example.com (Plus)`. A ChatGPT plan of `free`, or none, cannot be used
 this way: tell the human.
 
-Once linked, nothing else is needed: `chat:chat` sends Codex-eligible models to
-`/v1/responses`, where they run on the ChatGPT plan.
+Once linked, nothing else is needed: interviews and style builds run on the ChatGPT plan where
+the model allows it. Choices, causes and decisions are not affected: they use the plan's
+allowance, then credits.
 
 ## If `auth:connect` errors
 
@@ -79,21 +80,6 @@ Once linked, nothing else is needed: `chat:chat` sends Codex-eligible models to
 - **Your Faces session is missing or expired**: `faces auth:login`, then retry.
 - **The code expired**: more than 15 minutes passed. Run `faces auth:connect openai` again.
 
-## Where it applies
-
-| Caller | `/v1/responses` | `/v1/chat/completions` |
-|---|---|---|
-| ChatGPT linked | a Codex-eligible model runs on the ChatGPT plan | `409 use_responses_for_free_oauth`: use `/v1/responses` |
-| Not linked | the model is paid from credits, plus 5% | the model is paid from credits, plus 5% |
-
-Every other model, on any endpoint, is paid from credits at the model's listed price plus 5%.
-`chat:chat` routes each model to its catalog endpoint, so Codex-eligible models go to
-`/v1/responses` without a flag.
-
-**Was a call paid?** Read `_meta.billing` in `--json` chat output (the `X-Faces-Billing`
-header): `oauth` means the model ran on the ChatGPT plan, `credits` means it was paid from the
-balance. `_meta.provider` is the model's lab; never branch on it.
-
 ## When ChatGPT is unavailable
 
 On Connect and Pro the `api_fallback` preference is `false` by default: if ChatGPT is
@@ -101,12 +87,10 @@ unavailable or refuses the request, it fails rather than being paid from credits
 
 ```bash
 faces account:preferences api_fallback true     # fall back to credits
-faces chat:chat alice -m "hello" --oauth-only    # this request only: never fall back
 ```
 
-`--oauth-only` wins over the preference for that request. It is available on `chat:chat`,
-`chat:messages`, `chat:responses`, `chat:thread`, `compile:thread:create` and
-`compile:thread:message`.
+`--oauth-only` on `compile:thread:create` and `compile:thread:message` refuses to fall back for
+that interview, whatever the preference says.
 
 On Free there is no ChatGPT route: `api_fallback` is always `true`, and setting it to `false`,
 or passing `--oauth-only`, is a `422 oauth_only_unavailable`. Nothing is charged.
@@ -128,10 +112,10 @@ account they are charged to credits, which the CLI asks for with `--allow-paid` 
 
 ## Connect and Pro onboarding
 
-A new Connect or Pro user with no ChatGPT linked and `api_fallback` off gets a `422` for a
-Codex-eligible model at `/v1/responses` rather than a charge, until they either:
+A new Connect or Pro user with no ChatGPT linked and `api_fallback` off gets a `422` for an
+interview on the ChatGPT route rather than a charge, until they either:
 
 1. link ChatGPT: `faces auth:connect openai`, or
 2. allow paid fallback: `faces account:preferences api_fallback true`.
 
-Link first, then compile and chat.
+Link first, then run interviews.
