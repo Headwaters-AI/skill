@@ -103,7 +103,9 @@ faces face:create --name "Name" --alias slug --default-model MODEL \
   evidence."). `--specialty` names the **mode** the face brings to a model, the way a program has
   a name (at most 80 characters): "Biological Platonism", not "Biologist". Agents choose faces by
   these two, so write both. Both are metadata, editable with `face:edit`, and an empty string
-  clears either.
+  clears either. Left empty, they are drafted for you once the face has compiled enough, and a
+  drafted card is kept current as the face grows; once you set either one (even to the draft's
+  own text), the card is yours and is never drafted again.
 - `--tag` adds lowercase labels (repeatable, at most 32 per face).
 - `--attr` takes **twelve keys and no others**. Three take a bare value: `age` (`"45"`),
   `gender` (`"woman"`), `location` (`"Lisbon, Portugal"`). Nine take a short sentence:
