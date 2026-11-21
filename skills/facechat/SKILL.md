@@ -166,6 +166,11 @@ Write each fact the user establishes as a premise, with a status when it matters
 (`--premise-depends-on KEY=other_key`). When the user says something no longer holds, set it
 `invalidated`: everything resting on it is invalidated too.
 
+With `--state-id` and a question, the options are added to the state: the JSON gives each an
+`id` (`opt_...`) and the list a `choices_item` (`cho_...`). When the user picks an option, write
+it as a premise that rests on it (`--premise-depends-on goal=opt_...`), so a later decision
+resting on that premise is shown why the face proposed it. An option never invalidates anything.
+
 Prose sent with `--state` beside `--state-id` is an **addendum for that one call**: the face
 reads it with the state, and it is **never saved**. Anything that should still hold on the next
 question must be written with `faces state:add --premise`. Do not rely on the addendum to carry
