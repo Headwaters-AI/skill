@@ -90,16 +90,20 @@ afterwards (step 2).
 
 ```bash
 faces face:create --name "Name" --alias slug --default-model MODEL \
-  --description "Plain-text bio" \
-  --specialty "what this face is known for" \
+  --description "Use me for ..." \
+  --specialty "the mode this face brings" \
   --attr gender=man --attr age=34 --attr location="Portland, OR" \
   --attr occupation="Works as a nurse practitioner at a county clinic." \
   --tag research --tag physics
 ```
 
-- `--description` is a bio of up to 1,500 characters; `--specialty` the one line a card shows
-  under the name (80 characters). Both are metadata, editable with `face:edit`; an empty string
-  clears the specialty.
+- `--description` is the face's **"use me for" line** (up to 1,500 characters), written like an
+  agent skill's description: one or two sentences saying when to ask this face ("Use me for
+  deciding whether a result is worth building on, and for spotting a claim that outruns its
+  evidence."). `--specialty` names the **mode** the face brings to a model, the way a program has
+  a name (at most 80 characters): "Biological Platonism", not "Biologist". Agents choose faces by
+  these two, so write both. Both are metadata, editable with `face:edit`, and an empty string
+  clears either.
 - `--tag` adds lowercase labels (repeatable, at most 32 per face).
 - `--attr` takes **twelve keys and no others**. Three take a bare value: `age` (`"45"`),
   `gender` (`"woman"`), `location` (`"Lisbon, Portugal"`). Nine take a short sentence:
@@ -400,6 +404,22 @@ it **left out third-person documents** or rests on a **thin sample** for a mediu
 anyway, so pass that on to the user.
 
 See [REFERENCE.md → Style](references/REFERENCE.md#style-how-a-face-writes-style).
+
+### Choosing which faces to ask
+
+Treat each face's `description` as its "use me for" line and its `specialty` as the mode it
+brings. Pick the faces for a question by those, not by name alone:
+
+- **Read the catalog.** `faces face:list --json` returns every face with `description` and
+  `specialty` (`--public`, `--shared` or `--system` for faces beyond your own). With many faces,
+  rank them for the question over the API: `GET /v1/faces?for=<the task in plain words>` puts
+  the best fit first and gives each a `fit` from 0 to 1. It ranks and never filters.
+- **Ask several when more than one fits.** Run `faces choices` with each fitting face on the same
+  situation and question, pool their options, and only then decide (`faces decide`, or your own
+  judgement over the pooled set). One face's options are one mode's view.
+- **When a test keeps failing or a step is stuck,** look across the whole catalog again for faces
+  whose description fits the problem as it now stands, not only the ones already in use, and
+  ask them.
 
 ### 4. Ask: what would the face do?
 
