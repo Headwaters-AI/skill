@@ -565,12 +565,13 @@ faces benchmark:list --face alice
 
 ## Face description (`--description`)
 
-A plain-text bio, up to 1,500 characters, shown in listings. It is metadata: it does not change
-the face's causes. Synced to the local FACE.md.
+The face's "use me for" line, up to 1,500 characters: one or two sentences, like an agent
+skill's description, saying when to ask this face. Agents choose faces by it. It is metadata: it
+does not change the face's causes. Synced to the local FACE.md.
 
 ```bash
-faces face:create --name "Ada" --alias ada --description "Theoretical physicist and first-principles thinker"
-faces face:edit ada --description "Updated bio"
+faces face:create --name "Ada" --alias ada --description "Use me for reasoning a physics problem from first principles."
+faces face:edit ada --description "Use me for ..."
 ```
 
 `catalog:doctor --fix` pulls descriptions from the server; `catalog:doctor --generate` writes
@@ -578,11 +579,11 @@ missing ones with a model and saves them to the server.
 
 ## Face specialty (`--specialty`)
 
-What the face is known for, in a few words: the one line a card shows under the name. At most
-80 characters. Metadata only.
+The mode the face brings to a model, named the way a program is: "Biological Platonism", not
+"Biologist". The one line a card shows under the name. At most 80 characters. Metadata only.
 
 ```bash
-faces face:create --name "Ada" --alias ada --specialty "first-principles physics"
+faces face:create --name "Ada" --alias ada --specialty "First-principles physics"
 faces face:edit ada --specialty ""                   # clears it
 ```
 
