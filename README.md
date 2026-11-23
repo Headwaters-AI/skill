@@ -69,6 +69,18 @@ Please install Faces:
 3. tell me how to use it
 ```
 
+## Causal state hooks (optional)
+
+A causal state is the proof your agent keeps on Faces while it works: a tree of goals, tests and
+facts, and a last line that names what is left. Three small hooks show it to the agent without
+being asked: the whole tree at session start, its last line at each stop, and (in Claude Code)
+the session's claims released at session end. None of them ever blocks. They need the `faces`
+CLI and Python 3. See [STATES.md](skills/faces/references/STATES.md#hooks).
+
+- **Claude Code:** `/plugin marketplace add faces-sh/skill`, then `/plugin install faces@faces-skill`.
+- **Codex:** clone this repository and add the lines in [hooks/codex.toml](hooks/codex.toml) to
+  `~/.codex/config.toml`, with the path to your clone.
+
 ## Community catalog
 
 Browse and install manyfaced skills built by the community:

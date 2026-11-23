@@ -189,7 +189,7 @@ faces causes alice -m "What matters most to you?"                            # t
 
 `faces choices` returns the options the face would weigh, strongest first. Leave `--question`
 out and it proposes the question it would ask. For a situation over 3,000 tokens, or one your
-agent keeps building, put it in a state (`faces state:create`, `faces state:add`) and pass
+agent keeps building, put it in a state (`faces state:create --use`, `faces premise:add`; see STATES.md) and pass
 `--state-id`. `faces causes` returns the face's cause alone.
 
 ## 7. Check it worked

@@ -156,25 +156,23 @@ For a conversation that goes on, keep the situation on the server as a **state**
 question reads everything established so far:
 
 ```bash
-faces state:create ALIAS --json                         # once; keep the id
-faces state:add STATE_ID --premise KEY=VALUE --premise-description KEY="what it means"
+faces state:create --use                                # once: this directory uses the new state
+faces premise:add "KEY" "VALUE" --said "<the user's words>"
 faces choices ALIAS --state-id STATE_ID --question "QUESTION" --json
 ```
 
-Write each fact the user establishes as a premise, with a status when it matters
-(`--premise-status KEY=assumed`, `verified`, `unresolved`, `invalidated`) and what it rests on
-(`--premise-depends-on KEY=other_key`). When the user says something no longer holds, set it
-`invalidated`: everything resting on it is invalidated too.
+Write each fact the user establishes as a premise, in their words (`--said`). When the user says
+something no longer holds, mark it so: `faces premise:edit "KEY" --status invalidated --said
+"<their words>"`. Everything about working in a state is in
+[the faces skill's STATES.md](../faces/references/STATES.md).
 
 With `--state-id` and a question, the options are added to the state: the JSON gives each an
-`id` (`opt_...`) and the list a `choices_item` (`cho_...`). When the user picks an option, write
-it as a premise that rests on it (`--premise-depends-on goal=opt_...`), so a later decision
-resting on that premise is shown why the face proposed it. An option never invalidates anything.
+`id` (`opt_...`) and the list a `choices_item` (`cho_...`).
 
 Prose sent with `--state` beside `--state-id` is an **addendum for that one call**: the face
 reads it with the state, and it is **never saved**. Anything that should still hold on the next
-question must be written with `faces state:add --premise`. Do not rely on the addendum to carry
-facts forward.
+question must be written with `faces premise:add`. Do not rely on the addendum to carry facts
+forward.
 
 Start a fresh state when switching faces or when the user clearly begins a new topic.
 

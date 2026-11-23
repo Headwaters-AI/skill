@@ -85,7 +85,7 @@ faces choices          <alias | owner:alias | "(a | b)">  (--state TEXT | --stat
                                                        # strongest first. No --question: the question it would ask.
                                                        # --state is prose, at most 3,000 tokens; longer goes in a state
                                                        # (--state-id). With both, the prose is an addendum for that
-                                                       # call only, never saved: persist facts with state:add --premise.
+                                                       # call only, never saved: persist facts with premise:add.
 
 faces causes           <alias | owner:alias | "(a | b)">  (-m MSG... | --file PATH | --state TEXT | --state-file PATH)
                         [--question TEXT [--type noul|choice|score] [--option NAME[=DESCRIPTION]... | --level DESCRIPTION...] [--id KEY] | --questions-file PATH]
@@ -93,16 +93,20 @@ faces causes           <alias | owner:alias | "(a | b)">  (-m MSG... | --file PA
                                                        # the cause alone (POST /v1/causes): no model answers, only
                                                        # the cause is charged. Questions need --state, one cause each.
 
-faces state:create      [<alias | owner:alias | "(a | b)">]  [--premise K=V ...]  [--no-causes-visible]
-faces state:add         <state_id>  [--premise K=V ...]  [--premise-description K="..."]  [--premise-status K=STATUS]
-                        [--premise-depends-on K=a,b]  [-m MSG]
-                                                       # prints the status changes and the decisions resting on a value
-                                                       # you changed. STATUS: stated|verified|assumed|unresolved|invalidated
-faces state:get         <state_id>
-faces state:items       <state_id>                     # premises with their status, decisions, messages
-faces state:compact     <state_id>  [<face>]
-faces state:close       <state_id>  [--yes]
-                                                       # conversation:* and session:* are older names for state:*
+faces state:create      [--use [--local]]           # a new, empty state; --use: this directory uses it (.faces/state)
+faces state:use         <state_id>                    # this directory uses a state of yours
+faces state:get         [--query TEXT] [--json|--problog|--dot]   # the tree and its last line
+faces premise:add       <key> <value>  [--role goal|test]  [--and PARENT | --or PARENT]  [--on a,b]
+                        [--said "<their words>"]  [--await human|environment|<test key>]  [--jsonl FILE]
+faces premise:edit      <key>  [--value V] [--key NEW] [--status S] [--await ...|none] [--note T]
+                        [--evidence T] [--tested CANDIDATE] [--on a,b] [--refinement complete|incomplete]
+faces premise:get       <key>  [--depth N] [--up] [--query TEXT]   # one box, its branch, its messages
+faces premise:delete    <key>
+faces premise:claim     <key> <who> | --release [--session S]
+faces premise:refine    <key> --face ALIAS [-r [--depth N|all]]     # billed: conditions, meanings, a test, or a question
+faces premise:choices   <key> --face ALIAS [--question Q]           # billed: candidates for it
+faces premise:decide    <key> --face ALIAS                          # billed: ranks its candidates
+                                                       # all premise:* commands read the directory's state; see STATES.md
 
 faces models:list       [--kind choices|decision|cause|compile|chat|image|transcription[,...] | --kind all]  [--provider LAB]  [--chatgpt]
                                                        # the model catalog, once each, with kind, endpoint and price.
@@ -276,59 +280,19 @@ question (up to 10), in the same shape as `faces decide`. A cause takes about 10
 `faces causes` with `-m` reads every message sent, at most 30,000 tokens per request. A face
 with nothing compiled has no cause: `409`.
 
-## States and compaction
+## States
 
-A **state** is the situation your agent builds, kept on the server: premises (named facts, each
-with a status and what it depends on), the decisions faces made, and your messages. Over HTTP it
-is `/v1/states` (`/v1/conversations` is a deprecated alias). Hand it to a face with
-`faces choices --state-id`; join `decide` and `causes` to it with `--conversation`.
+A **state** is a proof in progress, kept on the server: a tree of premises joined by AND and OR,
+with a last line naming what still stands between you and a proved goal. Over HTTP it is
+`/v1/states`. Hand it to a face with `faces choices --state-id`; join `decide` and `causes` to it
+with `--conversation`. Everything about working in one (reading the tree, where what the human
+says goes, faces and builders, the commands and the hooks) is in [STATES.md](STATES.md).
 
-```bash
-faces state:create alice
-faces state:add fs_... --premise rent_rises='"12% in March"' --premise-status rent_rises=assumed \
-  --premise-description rent_rises="the landlord says rent goes up 12% in March"
-faces state:add fs_... --premise can_afford=false --premise-depends-on can_afford=rent_rises \
-  --premise-description can_afford="the shop can carry the higher rent"
-faces decide alice --conversation fs_... --depends-on can_afford --state "Decide about the lease." \
-  --question "Move the shop to a cheaper street before March?"
-# ...
-# decision id (answer): dec_...
-faces state:add fs_... --premise rent_rises='"no rise this year"' --premise-status rent_rises=invalidated
-# 3 statuses changed:
-#   premise rent_rises: assumed -> invalidated
-#   premise can_afford: stated -> invalidated (because rent_rises)
-#   decision dec_...: decided -> invalidated (because can_afford)
-faces choices alice --state-id fs_... --question "What should the shop do?"
-```
+**Decisions in a state.** `decide --conversation fs_... --depends-on a,b` says what a decision
+rests on; it is shown those premises in full. The response carries `decision_ids` (printed as
+`decision id (<question>): dec_...`).
 
-**Premises.** `--premise key=value` (the key is 1 to 64 letters, digits, `_` or `-`; the value
-is JSON when it is JSON, else text), with `--premise-description` the first time a key is used.
-`--premise-status key=status`: `stated` (default), `verified`, `assumed`, `unresolved`,
-`invalidated`. `--premise-depends-on key=a,b`: premise keys and decision ids already in the
-state or set in the same request, at most 200; `key=` clears it, and a newer value without it
-keeps the earlier one. A premise cannot depend on itself.
-
-**Status.** Each premise has the status the agent set; each decision is `decided`. Read back,
-`status` is the **effective** one: `invalidated` when its own is, or when anything it depends on
-is, directly or through others. Only `invalidated` spreads. Setting an invalidated premise to
-another status restores what depended on it, unless something else it depends on is still
-invalidated. `asserted_status` is the agent's own when it differs; `because` names what
-invalidated it. A write's response lists `status_changes`: `[{kind, key | id, from, to,
-because}]`.
-
-**Decisions in a state.** `decide --depends-on a,b` says what a decision rests on; it is shown
-those and invalidated with them. Without it, it rests on every premise in force. The response
-carries `decision_ids` (printed as `decision id (<question>): dec_...`) to name in a later
-`--depends-on`. When a premise's value changes, `decisions_made_under_old_values` lists the
-decisions that rested on the old value, with `via` naming a decision that carried it. Nothing is
-decided again for you.
-
-**Compaction.** `faces state:compact fs_... [face]` writes one face's position over the state as
-a compaction id (`fcmp_...`); `--compaction fcmp_...` on `causes` or `decide` reads it. Billed at
-the cause rate.
-
-Opening, reading and adding to a state are free. A state expires 30 days after its last use. A
-`404` on a state means unknown, expired, closed, another account's, or opened with another face.
+Opening, reading and writing a state are free. A state expires 30 days after its last use.
 
 ## The `me` face
 

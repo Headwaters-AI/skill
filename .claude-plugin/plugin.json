@@ -1,0 +1,6 @@
+{
+  "name": "faces",
+  "version": "1.0.0",
+  "description": "The Faces skills, and hooks that show the directory's causal state: the tree at session start, its last line at each stop. They never block.",
+  "author": {"name": "Headwaters Lab Inc."}
+}
