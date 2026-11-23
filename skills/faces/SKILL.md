@@ -438,7 +438,7 @@ sentence in its own terms. Leave `--question` out and it proposes the question i
 with alternatives. The situation is `--state` (prose, **at most 3,000 tokens**; longer is a
 `422` that says to use a state) or `--state-id` (a state, below). With both, the prose is an
 **addendum for that one call**: read with the state, never saved to it. Anything that should
-persist must be written to the state as premises (`faces state:add --premise`). `--model` is `maestro-1` (the default) or `maestro-1-flash`, which answers sooner
+persist must be written to the state as premises (`faces premise:add`, below). `--model` is `maestro-1` (the default) or `maestro-1-flash`, which answers sooner
 and costs 10 times more when a question is asked. A call takes about 10 to 30 seconds.
 
 Billing is on the call's `usage`: the tokens it processed, input and output. On Free both are paid
@@ -465,39 +465,26 @@ Refusals end "Nothing was charged.":
 | `402` | No credit | Top up |
 | `503` | The face's options failed | Retry |
 
-**States.** A **state** is the situation your agent builds, kept on the server: **premises**
-(named facts, each with a status and what it depends on), the decisions faces made, and your
-messages. Hand it to a face with `faces choices --state-id`, or join `decide` and `causes` to it
-with `--conversation`. Over HTTP it is `/v1/states` (`/v1/conversations` is a deprecated alias).
+**States.** A **state** is a proof in progress, kept on the server: a tree of premises joined
+by AND and OR, each box proved `[x]`, open `[ ]` or refuted `[-]`, and a last line that names
+what still stands between you and a proved goal. Hand it to a face with
+`faces choices --state-id`, or join `decide` and `causes` to it with `--conversation`. Over
+HTTP it is `/v1/states`.
 
 ```bash
-faces state:create alias                                  # prints the state id (fs_...)
-faces state:add fs_... --premise rent_rises='"12% in March"' --premise-status rent_rises=assumed \
-  --premise-description rent_rises="the landlord says rent goes up 12% in March"
-faces state:add fs_... --premise can_afford=false --premise-depends-on can_afford=rent_rises \
-  --premise-description can_afford="the shop can carry the higher rent"
-faces decide alias --conversation fs_... --depends-on can_afford --state "…" --question "…"
-faces choices alias --state-id fs_... --question "What should the shop do?"
-faces state:items fs_...                                  # premises with their status, decisions
-faces state:compact fs_...                                # prints a compaction id (fcmp_...)
+faces state:create --use                         # a new state for this directory (.faces/state)
+faces premise:add "the shop moves" "Move the shop before March" --role goal --said "<their words>"
+faces premise:refine "the shop moves" --face alias    # its conditions, its meanings, one test, or a question
+faces state:get                                  # the tree and its last line
+faces premise:edit "<a test>" --status verified --evidence "<what the run showed>"
 ```
 
-**Premises.** A premise is `--premise key=value` with `--premise-description` the first time a
-key is used. `--premise-status key=status` is `stated` (default), `verified`, `assumed`,
-`unresolved` or `invalidated`; `--premise-depends-on key=a,b` names the premise keys and
-decision ids it rests on (`key=` clears it). **Only `invalidated` spreads:** an invalidated
-premise invalidates everything that depends on it, directly or through others, and setting it
-back restores them. `state:add` prints every status that changed (`status_changes` over HTTP).
-What you read back is the effective `status`; `asserted_status` is what the agent set, shown
-when they differ, and `because` names what invalidated it. Decide with `--depends-on` to say
-what a decision rests on; `decide` prints its decision id for later `--depends-on`. When a
-value changes, `decisions_made_under_old_values` lists the decisions that rested on the old one.
-Nothing is decided again for you: revisit the ones that matter.
-
-Opening, reading and adding to a state are free; turns cost what they cost without one;
-compacting is billed at the cause rate. A state expires 30 days after its last use. The
-`conversation:*` and `session:*` commands are older names for `state:*`. See
-[REFERENCE.md → States](references/REFERENCE.md#states-and-compaction).
+**Read [STATES.md](references/STATES.md) before working in a state:** how to read the tree,
+where each thing the human says goes, faces and builders, every command, and the hooks that
+show the state at each session start and stop. `decide --conversation fs_... --depends-on
+<key>` says what a decision rests on. Opening, reading and writing a state are free;
+`premise:refine`, `premise:choices` and `premise:decide` are billed per call, as `choices` and
+`decide` are. A state expires 30 days after its last use.
 
 **System and published faces:** every account can ask a curated set of faces under the
 `head` account, and any face published or shared with it, as `owner:alias`, for
@@ -764,6 +751,7 @@ The body after the frontmatter is the protocol (usually a mermaid diagram). Writ
 
 - [QUICKSTART.md](references/QUICKSTART.md): first-time setup, end to end
 - [REFERENCE.md](references/REFERENCE.md): every command
+- [STATES.md](references/STATES.md): causal state: the tree, the commands, the hooks
 - [AUTH.md](references/AUTH.md): registration, login, API keys, plans
 - [INTERVIEWS.md](references/INTERVIEWS.md): interview workflows
 - [CONCEPTS.md](references/CONCEPTS.md): causal models, causes, composites, style

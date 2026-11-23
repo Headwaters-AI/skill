@@ -1,0 +1,16 @@
+# The causal-state hooks for Codex: add these lines to ~/.codex/config.toml, with the path to
+# your clone of this repository. Session start prints the directory's state; stop prints its
+# last line. Neither ever blocks. (Codex has no session-end hook: claims expire on their own.)
+[[hooks.SessionStart]]
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "python3 /path/to/skill/hooks/work_state.py start"
+timeout = 120
+
+[[hooks.Stop]]
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = "python3 /path/to/skill/hooks/work_state.py stop"
+timeout = 120

@@ -1,0 +1,6 @@
+{
+  "name": "faces-skill",
+  "description": "The Faces skills for making faces and putting them to work, with causal-state hooks.",
+  "owner": {"name": "Headwaters Lab Inc."},
+  "plugins": [{"name": "faces", "source": "./", "description": "The Faces skills, and hooks that show the directory's causal state."}]
+}
