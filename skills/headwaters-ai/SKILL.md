@@ -74,12 +74,12 @@ hw state:create --use
 hw state:add "the dinner is planned" "Dinner for six on Friday" --role goal --said "<their words>"
 hw state:add "the guests" "Six; one vegan, one with a nut allergy"            --and "the dinner is planned"
 hw state:add "the menu" "Starter, main and dessert everyone can eat"          --and "the dinner is planned" --on "the guests"
-hw state:add "test: every dish is vegan and nut-free" "true if no dish has animal products or nuts" --role test --on "the menu"
+hw state:add "every dish is vegan and nut-free" "true if no dish has animal products or nuts" --role test --on "the menu"
 hw state:choices "the menu" --face @owner~home-cook --question "Which menu?" --rank   # candidates under "the menu"
-hw state:edit "test: every dish is vegan and nut-free" --status verified --tested "<the candidate you used>" --evidence "<what you checked>"
+hw state:edit "every dish is vegan and nut-free" --status verified --tested "<the candidate you used>" --evidence "<what you checked>"
 ```
 
-`--and` and `--or` take the parent's key. **The face sees only the premise and what it reads through `--on`,** so link the facts it needs (here, the guests) before you ask `state:choices`. Read each candidate's description, not just its name: if a name comes back generic, rename it to what it is with `state:edit "<name>" --key "<what it is>"`.
+`--and` and `--or` take the parent's key. `--role test` marks a test, so don't start its key with "test:". Record a run with `--tested "<candidate>"` when the test reads an OR candidate; a test that reads a plain premise is recorded with `--status` and `--evidence` alone. **The face sees only the premise and what it reads through `--on`,** so link the facts it needs (here, the guests) before you ask `state:choices`. Read each candidate's description, not just its name: if a name comes back generic, rename it to what it is with `state:edit "<name>" --key "<what it is>"`.
 
 ### Premises
 
@@ -244,7 +244,7 @@ The choices decoder is native to Headwaters. Decision and chat decoders include 
 
 ```bash
 hw maestro:choices --face @owner~face --state "<the situation>" [--question "<the choice you face>"]
-hw maestro:decide  --face @owner~face --state "<the situation>" --question "<which option?>"
+hw maestro:decide  --face @owner~face --state "<the situation>" --question "<which option?>" --option "<name>" --option "<name>"
 hw maestro:chat    --face @owner~face --decoder <chat model> --message "<…>" [--thread <name>]
 ```
 
