@@ -318,7 +318,7 @@ hw maestro:decide --face @owner~<whose judgement should settle it> --state "<the
   --question "<the fork>" --option "<pooled option>" --option "<pooled option>" --option "<pooled option>"
 ```
 
-Pick faces for their distance from each other, not only their fit: the value is in the options you would not have found from one view.
+Pick faces for their distance from each other, not only their fit: the value is in the options you would not have found from one view. Rank the pool under a face that proposed none of it, or under each proposer and compare, so no one view grades its own ideas.
 
 ### Cascade
 
