@@ -88,11 +88,21 @@ The tree works as a proof structure. Truth flows upward through the logic: an AN
 
 Probabilities rank OR candidates so you know what to try first. They never establish truth. Only verification does, through a passing test or the human's confirmation. A failing test invalidates a candidate, and the next one becomes the one to try.
 
+**Prove a candidate through its tests, not by editing it.** Choosing a candidate does not prove it, and neither does its rank. Give the choice a test that reads it, run the test, and record the run on the candidate: `hw state:edit "<test>" --status verified --tested "<candidate>" --evidence "<what the run showed>"`. The candidate is then proved by the server. Setting a candidate's own status to `verified` with its rank as evidence skips the check the state exists to make.
+
 A premise with children stays open until its refinement is complete, even when every child is proved. Changing a goal's value sets its refinement back to incomplete.
+
+Let `hw state:refine` judge completeness where you can (`-r` refines a whole branch). Mark `--refinement complete` by hand only when you have checked that the children are enough, and expect `state:get` to list it as marked by hand.
 
 ### Discerning
 
 Discerning is the process of completely refining a goal and then verifying a necessary and sufficient set of its leaves. Use it for tasks with no one right answer (such as tradeoffs), for cornerstones of larger tasks, and wherever proof matters. Skip it for rote or trivial work.
+
+**What goes in the goal.** The goal holds what the user wants and the conditions they set. Leave out instructions about your own work, such as a budget for paid tools or where to save files: refine would read them as conditions of the task.
+
+**Goals and conditions.** Give `--role goal` only to what still needs breaking down. A condition you will check with a test (it fits in three hours, every dish is nut-free) is a plain premise under its parent, with a test that reads it (`--on`). A goal with no children stays open, however its tests turn out.
+
+**Read what refine adds.** It proposes conditions under a face; some will be off or repeated. Delete what does not belong and add what is missing before you build on it.
 
 ```bash
 hw state:create --use                                  # a new state, used by every hw call in this directory
@@ -130,6 +140,7 @@ Waiting on one branch never blocks work on the others. The work is done when the
 - `hw state:choices` asks a face to propose candidates for an open premise (abduction).
 - `hw state:decide` ranks them by how likely each is to work (induction). It ranks and never prunes.
 - `hw state:edit` records test results.
+- `hw state:add --jsonl <file>` adds many premises in one call, which keeps a large state cheap to build.
 - `hw state:items` lists the history of every decision and write.
 
 Nothing yet restores the tree to an earlier point. Read the history with `state:items` and work from the current tree.
@@ -186,7 +197,7 @@ For example:
 (@zerocool~redteam | @acidburn~worldspacedev):maestro-1/gpt-6-astra
 ```
 
-The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
+Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
 
 Use `maestro-1-fast` (`--fast`) when latency matters more than cost. It is the same encoder, answering sooner at ten times the price.
 
@@ -284,7 +295,9 @@ hw account:login --email … --password '…'
 hw account:whoami
 hw account:balance                               # credit; account:topup adds more
 hw account:usage                                 # what has been spent, and on what
-hw account:activate --plan connect               # subscribe from Free; account:plan switches a subscription
+hw account:subscription                          # the plan you are on (read only)
+hw account:activate --plan connect               # subscribe from Free (charges the card)
+hw account:plan pro                              # switch a subscription (charges the difference)
 hw key:create --name "my-key"                    # a key for programs and agents, used as HW_API_KEY
 hw key:list
 hw key:edit <id> --budget 5                      # a spending cap
@@ -292,7 +305,7 @@ hw key:revoke <id>
 hw config:set api_key <key>                      # save a key for hw on this machine
 ```
 
-**Spending is the user's call.** Make no paid call (choices, decisions, chat, refine, compile) until the user has approved a budget, the data to be sent (point out anything personal or private), and which key will be used.
+**Spending is the user's call.** Make no paid call (choices, decisions, chat, refine, compile) until the user has approved a budget, the data to be sent (point out anything personal or private), and which key will be used. A budget the user gives you with the task covers sending that task's own content; ask again before sending anything beyond it.
 
 `hw <topic> --help` lists every command. Every command takes `--json` for machine-readable output.
 
@@ -308,11 +321,11 @@ Use the HTTP API for any language, or `hw` for scripts and probing. The chat end
 
 **The live docs are the source of truth** for request syntax, limits, prices and current behaviour. Read the relevant pages as part of the task:
 
-- Documentation index: `https://docs.headwaters.ai/llms.txt`. Append `.md` to a page path for Markdown.
-- OpenAPI spec: `https://api.headwaters.ai/openapi.json`.
+- Documentation index: `https://docs.faces.sh/llms.txt`. Append `.md` to a page path for Markdown.
+- OpenAPI spec: `https://api.faces.sh/openapi.json`. The API base is `https://api.faces.sh/v1`.
 - Prices and limits: `GET /v1/rates`. Models: `GET /v1/models`.
 
-If those hosts don't resolve, use `https://docs.faces.sh` and `https://api.faces.sh`. If you can't reach the docs at all, say so and leave out version-dependent details rather than guessing them.
+These move to `docs.headwaters.ai` and `api.headwaters.ai` after the move to headwaters.ai; use whichever resolves. If you can't reach the docs at all, say so and leave out version-dependent details rather than guessing them.
 
 ### Errors
 
