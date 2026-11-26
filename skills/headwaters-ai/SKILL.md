@@ -25,6 +25,7 @@ Headwaters has three tools for working in causal space:
 - **Ask before you spend.** Choices, decisions, chat, refine and compile are paid; make none until the user has approved a budget and the data to send.
 - **Use a causal state** when the user set two or more conditions, when you will choose between options that matter to them, or when something only they can settle. Skip it for one-step work.
 - **For a judgement call,** find a face with `hw face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Even a weakly fitting face gives one view worth having: use it, and say how well it fits. A close ranking means the choice is the user's.
+- **Farm out simple work.** When a task has many small pieces, ask `@head~dispatcher` which model each should go to and send them with `maestro:chat --decoder`, keeping the hard parts for yourself.
 - **Run `--help`** before a flag you have not used.
 
 ```
@@ -185,7 +186,17 @@ Once a goal is refined, each leaf is a small, well-defined piece of work that ca
 4. **Record outcomes as lessons,** in the first person: the situation, and what you learned from it. For example: "When a task merges records across dated changes, I give it to the stronger model: the small one follows the first change and stops."
 5. **Distill the lessons into a dispatcher face** (`@you~dispatcher`) and compile it again as lessons accumulate. Then ask a decision steered by that face which model to use, with your shortlist as the options.
 
-**Seeding a dispatcher.** Before you have results of your own, inherit a public one: `hw face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
+**Use the public dispatcher.** `@head~dispatcher` is published, compiled from what is reported about every chat model Headwaters serves, so you can dispatch before you have lessons of your own. For each simple leaf, ask it which model to use, then send the leaf to that model:
+
+```bash
+hw maestro:decide --face @head~dispatcher --state "<the piece of work, in a line or two>" \
+  --question "Which model should this task be dispatched to?" --option "<model>" --option "<model>" --option "<model>"
+hw maestro:chat --face @owner~<a face that fits the work> --decoder "<the model it picked>" --message "<the piece of work>"
+```
+
+Put a cheap model and a strong one on the shortlist, so the dispatcher can tell you when a piece needs the strong one. Note on the leaf which model did it and how it went (`state:edit "<leaf>" --note "<model>: <how it went>"`): those notes are the lessons your own dispatcher is made from.
+
+**Seeding your own dispatcher.** Inherit a public one: `hw face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
 
 Keep lessons honest. A lesson should come from a run you have actually read, not from a guess. Check the dispatcher from time to time against how its picks turned out.
 
@@ -316,84 +327,23 @@ hw face:import  home-cook --url "https://www.youtube.com/watch?v=VIDEO_ID"
 
 `hw face:publish` lists a face in the public catalog. `hw face:share` gives it to chosen accounts. `face:unpublish` and `face:unshare` undo them.
 
-## Account, keys and cost
-
-```bash
-npm install -g @headwaters-ai/cli@latest         # install or update hw
-hw account:register --email … --password '…' --username … [--plan connect|pro]   # see references/QUICKSTART.md first
-hw account:login --email … --password '…'
-hw account:whoami
-hw account:balance                               # credit; account:topup adds more
-hw account:usage                                 # what has been spent, and on what
-hw account:subscription                          # the plan you are on (read only)
-hw account:activate --plan connect               # subscribe from Free (charges the card)
-hw account:plan pro                              # switch a subscription (charges the difference)
-hw key:create --name "my-key"                    # a key for programs and agents, used as HW_API_KEY
-hw key:list
-hw key:edit <id> --budget 5                      # a spending cap
-hw key:revoke <id>
-hw config:set api_key <key>                      # save a key for hw on this machine
-```
+## Account and API
 
 **Spending is the user's call.** Make no paid call (choices, decisions, chat, refine, compile) until the user has approved a budget, the data to be sent (point out anything personal or private), and which key will be used. A budget the user gives you with the task covers sending that task's own content; ask again before sending anything beyond it.
 
-`hw <topic> --help` lists every command. Every command takes `--json` for machine-readable output.
+Every account has a face of its own, aliased **`me`**: compile the user's own writing into it rather than creating another. `hw account:whoami` shows who you are signed in as, and `hw account:balance` the credit left.
 
-Every account has a face of its own, aliased **`me`**. Compile the user's own writing into it rather than creating another.
+**Writing code against the API?** The base is `https://api.faces.sh/v1`, every call sends `Authorization: Bearer <key>`, and the chat endpoints take any OpenAI or Anthropic client with `model` set to `@owner~face:maestro-1/<chat model>`. A long call can return `200` with an `error` body: treat that as a failure. Read `references/API.md` before writing the code; it has the docs, the error codes and the hosts.
 
-**Plans.** Free pays as you go, with no monthly fee. Connect and Pro add monthly allowances for compiling and for Maestro. Eligible chat models run on a linked ChatGPT plan (`hw account:connect openai`).
-
-**Cost.** Choices, decisions and chat are billed per token the encoder processes, plus the decoder's own price for decisions and chat. Compiling is billed per source token. Building and reading a causal state is free; refining it runs billed choices and decisions. For current prices, plans and limits, use `GET /v1/rates` and `GET /v1/models`.
-
-## Building with the API
-
-Use the HTTP API for any language, or `hw` for scripts and probing. The chat endpoints are drop-in replacements for OpenAI's and Anthropic's, so an existing client changes only its `model`: `@owner~face:maestro-1/<chat model>`.
-
-**The live docs are the source of truth** for request syntax, limits, prices and current behaviour. Read the relevant pages as part of the task:
-
-- Documentation index: `https://docs.faces.sh/llms.txt`. Append `.md` to a page path for Markdown.
-- OpenAPI spec: `https://api.faces.sh/openapi.json`. The API base is `https://api.faces.sh/v1`, and every call sends the key as `Authorization: Bearer <key>`.
-- Prices and limits: `GET /v1/rates`. Models: `GET /v1/models`.
-
-These move to `docs.headwaters.ai` and `api.headwaters.ai` after the move to headwaters.ai; use whichever resolves. If you can't reach the docs at all, say so and leave out version-dependent details rather than guessing them.
-
-### Errors
-
-Errors return JSON with a `detail` you can show as it stands.
-
-- `422`: the request has the wrong shape. The message shows the right form.
-- `409`: the face has nothing compiled yet, or is busy.
-- `429`: a limit was hit. The message says when it resets.
-- `503`: retry after `Retry-After`.
-- A long call may return `200` with an `error` body if it fails after it started. Treat that as a failure.
-
-## Glossary
-
-
-| term                    | meaning                                                                                                |
-| ----------------------- | ------------------------------------------------------------------------------------------------------ |
-| **Maestro**             | the upstream encoder: it reads a state through a face and produces a why code                          |
-| **face**                | a mask on causal space, compiled from source texts, that encodes a taste and judgement                 |
-| **why code**            | the latent cause Maestro distills from the state and face; it steers the decoder and is never returned |
-| **decoder**             | the downstream model that turns the why code into output: choices, a decision model, or a chat model   |
-| **causal space**        | the space of directional dependencies: what a state depends on and what it leads to                    |
-| **model string**        | face, encoder and decoder named together: `@owner~face:maestro-1/<decoder>`                            |
-| **inference model**     | a face, Maestro and a decoder, paired on demand                                                        |
-| **state**               | the situation sent with a call: prose, or a causal state                                               |
-| **causal state**        | an AND/OR tree of premises, kept on the server and kept true as things change                          |
-| **premise**             | a node of a causal state: a goal, a test or a fact                                                     |
-| **complete refinement** | a goal decomposed into leaves all the way down; `refinement=complete`                                  |
-| **discerning**          | completely refining a goal, then verifying the leaves that prove it                                    |
-| **halting**             | knowing, from the state, when to work, when to wait and when to ask                                    |
-| **dispatch**            | sending each piece of work to the model that suits it                                                  |
-| **distill**             | compiling intelligence and lessons into a face                                                         |
-
+Sign-up, keys, plans and cost are in `references/ACCOUNT.md`.
 
 ## References
 
 
 | file                       | covers                                                                                         |
 | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| `references/API.md`        | building with the HTTP API: docs, auth, hosts, error codes                                     |
+| `references/ACCOUNT.md`    | sign-up, keys, plans, spending caps and cost                                                   |
 | `references/QUICKSTART.md` | from nothing to a first answer: install, sign up or in, a key, your own face, a first question |
 | `references/CLI.md`        | every `hw` command and flag (not yet written: use `hw <topic> --help`)                         |
 | `references/SETUP.md`      | installing `hw`, keys, and the plugin hooks for Claude Code and Codex                          |
