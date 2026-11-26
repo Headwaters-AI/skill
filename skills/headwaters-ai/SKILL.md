@@ -18,7 +18,7 @@ Headwaters has three tools for working in causal space:
 
 - **Causal state** is a map: where you are, where the goal is, and how best to get there.
 - **Faces** are masks on causal space: each one encodes a particular taste and judgement.
-- **Maestro** is the encoder that brings them together: it reads a state through a face into causal `why code` and uses them to steer various  models: choices, decisions, chat.
+- **Maestro** is the encoder that brings them together: it reads a state through a face into causal `why code` and uses them to steer various models used as decoders: choices, decisions, chat.
 
 **In practice** (details in each section below):
 
