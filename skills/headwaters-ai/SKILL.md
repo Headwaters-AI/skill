@@ -330,7 +330,7 @@ hw face:list --for "<…>" --public                        # including published
 hw face:list --public --search "<words>" --sort usage    # most-used published faces that match
 ```
 
-If the best fit is weak, make one. Each branch of a causal state has its own task, so its best face can differ from the root's.
+Fit scores rarely go much above 0.7: a face made for the task scores about 0.55 to 0.7, a general one about 0.45 to 0.5. A score near the top of that range is a good match, not a loose one. If the best fit is weak, make one. Each branch of a causal state has its own task, so its best face can differ from the root's.
 
 ### Make one
 
