@@ -302,7 +302,7 @@ hw maestro:choices --face @owner~face --state "<what you know so far>" --questio
 hw maestro:choices --face @owner~face --state "<an ambiguous request and its context>"   # the face proposes the question to ask
 ```
 
-Good moments for one: before you start digging (which lead to follow first), when a request can be read several ways (which reading is most likely), when you are about to ask the user something (which question matters most), and when you are stuck (what you have not considered). Read the options, then act on them yourself; send the names to a decision only when you need a ranking.
+Good moments for one: before you start digging (which lead to follow first), when a request can be read several ways (which reading is most likely), when you are about to ask the user something (which question matters most), and when you are stuck (what you have not considered). Read the options, then act on them yourself; send the names to a decision only when you need a ranking. Treat each option as a lead, not a finding: check its facts against what you know, and expect a face that fits the work poorly to rank poorly too.
 
 ### Cascade
 
