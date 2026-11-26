@@ -61,7 +61,7 @@ Reading and writing it is free, and its output is short. It works alongside your
 **When to use one.** A task is worth a state when any of these is true, even if it looks small:
 
 - the user set two or more conditions the result must meet (a diet, a time limit, a budget, a deadline);
-- you will choose between options, and the choice matters to the user;
+- you will choose between options, and the choice matters to the user (a job offer, a vendor, a design, a menu): put the options under an OR premise, the user's conditions beside them, and let tests and the user's answers settle it;
 - something can be settled only by the user;
 - you will want to check the result against the conditions before you call it done.
 
@@ -220,7 +220,7 @@ For example:
 (@zerocool~redteam | @acidburn~worldspacedev):maestro-1/gpt-6-astra
 ```
 
-Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). When code names a face, find out whose it is (`hw account:whoami` gives your username) or ask, and write the owner in if it is not yours. The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
+Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). When code names a face, find out whose it is (`hw account:whoami` gives your username; `hw face:list` shows yours) or ask, and write the owner in if it is not yours. If you cannot ask now, put the question where the user will see it (your reply, or a questions file), not only in a code comment. The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
 
 Use `maestro-1-fast` (`--fast`) when latency matters more than cost. It is the same encoder, answering sooner at ten times the price.
 
