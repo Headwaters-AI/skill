@@ -26,7 +26,7 @@ Headwaters has three tools for working in causal space:
 - **Use a causal state** when the user set two or more conditions, when you will choose between options that matter to them, or when something only they can settle. Skip it for one-step work.
 - **At a fork, ask `choices`.** When the next moves are not obvious and nothing lists them, choices narrows that open space to the few that are viable, usually two to seven, strongest first, as a face sees them. One call, a fraction of a cent. When the options are already known, a decision ranks them; when they are not, choices finds them. Use it before you commit to a path: what to try next, how to read an ambiguous request, what to ask the user. Leave out `--question` and the face proposes the question it would ask.
 - **For a judgement call,** find a face with `hw face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Even a weakly fitting face gives one view worth having: use it, and say how well it fits. A close ranking means the choice is the user's.
-- **Farm out simple work.** When a task has many small pieces, ask `@head~dispatcher` which model each should go to and send them with `maestro:chat --decoder`, keeping the hard parts for yourself.
+- **Farm out simple work, and keep what you learn.** When a task has many small pieces, ask `@head~dispatcher` which model each should go to and send them with `maestro:chat --decoder`, keeping the hard parts for yourself. When a model's work needs fixing, or does better than expected, write it down as a lesson and compile it into your own dispatcher, so the next dispatch knows.
 - **Run `--help`** before a flag you have not used.
 
 ```
@@ -196,6 +196,22 @@ hw maestro:chat --face @owner~<a face that fits the work> --decoder "<the model 
 ```
 
 For a long output, pass `--max-tokens` (a thinking model can spend the default on thinking and return nothing) and split a big batch into a few calls. Put a cheap model and a strong one on the shortlist, so the dispatcher can tell you when a piece needs the strong one. Note on the leaf which model did it and how it went (`state:edit "<leaf>" --note "<model>: <how it went>"`): those notes are the lessons your own dispatcher is made from.
+
+**Keep your own dispatcher.** The public dispatcher knows what is reported about models; yours knows what happened in your work. After dispatched work comes back and you have checked it, write each lesson in the first person, as the situation and what you learned, in a lessons file kept with the project (`dispatch-lessons.md`). Writing it is free:
+
+```
+Support replies, 40 tickets: gemma-4-31b-it wrote friendly replies but invented menu names and product facts in 17 of 40. I send fact-bearing replies to a stronger model, or give the small one the help text to quote.
+Ticket labels, 40 tickets: claude-haiku-5-5 labelled all 40 correctly in one batch. I send labelling to it.
+```
+
+Then compile the file into your own face, once the user has approved the small cost (a short lessons file is a fraction of a cent):
+
+```bash
+hw face:create --name "My dispatcher" --alias dispatcher --description "Which model my work should go to, from what I have seen"   # once
+hw face:compile dispatcher --file dispatch-lessons.md --medium other --rush
+```
+
+From then on, dispatch with both, yours and the public one: `--face "(@you~dispatcher | @head~dispatcher)"`. Add each new lesson to the file and compile it again; note in the state where the lessons file and your dispatcher are, so the next session finds them.
 
 **Seeding your own dispatcher.** Inherit a public one: `hw face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
 
