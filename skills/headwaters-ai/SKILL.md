@@ -308,6 +308,18 @@ hw maestro:choices --face @owner~face --state "<an ambiguous request and its con
 
 Good moments for one: before you start digging (which lead to follow first), when a request can be read several ways (which reading is most likely), when you are about to ask the user something (which question matters most), and when you are stuck (what you have not considered). Read the options, then act on them yourself; send the names to a decision only when you need a ranking. Treat each option as a lead, not a finding: check its facts against what you know, and expect a face that fits the work poorly to rank poorly too.
 
+**Harvest from several points of view.** To widen the search before you narrow it, send the same state and question to faces that sit far apart (an auditor, a growth lead and a designer, say), so each returns the few options its view makes viable. Pool them, keeping which face proposed each, then hand the pool to a decision to rank or to a chat model to combine:
+
+```bash
+for f in @owner~auditor @owner~growth @owner~designer; do
+  hw maestro:choices --face "$f" --state "<the situation>" --question "<the fork>"
+done
+hw maestro:decide --face @owner~<whose judgement should settle it> --state "<the situation>" \
+  --question "<the fork>" --option "<pooled option>" --option "<pooled option>" --option "<pooled option>"
+```
+
+Pick faces for their distance from each other, not only their fit: the value is in the options you would not have found from one view.
+
 ### Cascade
 
 Chain them. First, choices proposes the options from a state and a question, or a question and its options from a state alone (abduction). Then a decision ranks those options (induction). The choices' names go straight into the decision as a `choice` question's options.
