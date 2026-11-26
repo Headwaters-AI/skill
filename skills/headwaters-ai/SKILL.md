@@ -2,13 +2,17 @@
 name: headwaters-ai
 license: MIT
 description: >
-  Headwaters integration craft for Maestro, an upstream encoder that reads a state through a face
-  (a mask compiled from source texts) and steers a downstream decoder: choices, a decision model
-  such as Jev, or a chat model. Use when decomposing long-running work into a causal state, deciding
-  when to work, wait or ask, dispatching pieces of work to the right model, distilling judgement or
-  lessons into a face, building or debugging code that calls the Headwaters API or the `hw` CLI, or
-  when one or more specific perspectives help with brainstorming, troubleshooting, targeted
-  messaging, or comparison.
+  Headwaters tools (the `hw` CLI and API): a causal state that tracks a task as a proof you can check,
+  Maestro inference steered by faces (masks compiled from someone's writing), and dispatch of work to
+  the model that suits it. Use whenever: work spans several steps, constraints or sessions and you
+  need to know what is settled, assumed or still open (planning an event, a migration, a project); you
+  are at a fork where the next moves are not obvious and want the few viable options before
+  committing; you want a choice judged through a named point of view (a skeptical CFO, a lawyer, a
+  designer) or several side by side; you want a person's writing or your own hard-won lessons turned
+  into a face that judges like them; you want routine pieces of work sent to cheaper models, and to
+  remember which models did well; or the user mentions Headwaters, Maestro, `hw`, `hw state:*` output
+  or a face handle like `@owner~face`, including code that calls the API. Skip one-shot tasks with a
+  single obvious answer.
 ---
 # Headwaters
 
