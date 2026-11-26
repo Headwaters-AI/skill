@@ -24,6 +24,7 @@ Headwaters has three tools for working in causal space:
 
 - **Ask before you spend.** Choices, decisions, chat, refine and compile are paid; make none until the user has approved a budget and the data to send.
 - **Use a causal state** when the user set two or more conditions, when you will choose between options that matter to them, or when something only they can settle. Skip it for one-step work.
+- **At a fork, ask `choices`.** One call turns an open question about the situation into a short list of viable options, usually two to seven, strongest first, as a face sees it. It costs a fraction of a cent. Use it before you commit to a path: what to try next, how to read an ambiguous request, what to ask the user. Leave out `--question` and the face proposes the question it would ask.
 - **For a judgement call,** find a face with `hw face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Even a weakly fitting face gives one view worth having: use it, and say how well it fits. A close ranking means the choice is the user's.
 - **Farm out simple work.** When a task has many small pieces, ask `@head~dispatcher` which model each should go to and send them with `maestro:chat --decoder`, keeping the hard parts for yourself.
 - **Run `--help`** before a flag you have not used.
@@ -194,7 +195,7 @@ hw maestro:decide --face @head~dispatcher --state "<the piece of work, in a line
 hw maestro:chat --face @owner~<a face that fits the work> --decoder "<the model it picked>" --message "<the piece of work>"
 ```
 
-Put a cheap model and a strong one on the shortlist, so the dispatcher can tell you when a piece needs the strong one. Note on the leaf which model did it and how it went (`state:edit "<leaf>" --note "<model>: <how it went>"`): those notes are the lessons your own dispatcher is made from.
+For a long output, pass `--max-tokens` (a thinking model can spend the default on thinking and return nothing) and split a big batch into a few calls. Put a cheap model and a strong one on the shortlist, so the dispatcher can tell you when a piece needs the strong one. Note on the leaf which model did it and how it went (`state:edit "<leaf>" --note "<model>: <how it went>"`): those notes are the lessons your own dispatcher is made from.
 
 **Seeding your own dispatcher.** Inherit a public one: `hw face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
 
@@ -275,6 +276,17 @@ Run `hw <topic>:<command> --help` before using a flag you have not seen.
 - A choice's options come strongest first. The first is the face's lead, not a verdict: weigh them with a decision when you must pick.
 - A decision's probability is how likely the answer is correct, as this face judges it. For a yes or no, 0.7 and 0.3 are good starting thresholds; the band between means the state does not settle it, so give that band its own outcome.
 - No clear winner among options (top probability under 0.6, or a lead under 0.2) usually means the choice is not the model's to make. Ask the person it belongs to.
+
+### Choices on its own
+
+You do not need a causal state, or a decision after it, to use choices. A single call is a quick sounding board whenever the space of possible next moves is wide open: it narrows that space to the few options a face's judgement says are viable, each with a short reason.
+
+```bash
+hw maestro:choices --face @owner~face --state "<what you know so far>" --question "<the fork you are at>"
+hw maestro:choices --face @owner~face --state "<an ambiguous request and its context>"   # the face proposes the question to ask
+```
+
+Good moments for one: before you start digging (which lead to follow first), when a request can be read several ways (which reading is most likely), when you are about to ask the user something (which question matters most), and when you are stuck (what you have not considered). Read the options, then act on them yourself; send the names to a decision only when you need a ranking.
 
 ### Cascade
 
