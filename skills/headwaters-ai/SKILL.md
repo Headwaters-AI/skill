@@ -58,6 +58,17 @@ It keeps you from the usual failures of long work:
 
 Reading and writing it is free, and its output is short. It works alongside your harness's own todo list: use the todo list for steps, and the state for what has to be true.
 
+**When to use one.** A task is worth a state when any of these is true, even if it looks small:
+
+- the user set two or more conditions the result must meet (a diet, a time limit, a budget, a deadline);
+- you will choose between options, and the choice matters to the user;
+- something can be settled only by the user;
+- you will want to check the result against the conditions before you call it done.
+
+A one-step task with a single right answer does not need one.
+
+**Start light.** A state costs nothing to build by hand, and it is fast: add the goal, one plain premise per condition the user set, and a test for each condition you can check. Refine (paid, and slower) only where you do not yet know what the goal depends on. Weigh options with `state:choices --rank` so the ranking is kept in the state.
+
 ### Premises
 
 A causal state is a graph of premises, called `items` in the CLI. Each premise has:
@@ -197,7 +208,7 @@ For example:
 (@zerocool~redteam | @acidburn~worldspacedev):maestro-1/gpt-6-astra
 ```
 
-Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
+Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). When code names a face, find out whose it is (`hw account:whoami` gives your username) or ask, and write the owner in if it is not yours. The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
 
 Use `maestro-1-fast` (`--fast`) when latency matters more than cost. It is the same encoder, answering sooner at ten times the price.
 
