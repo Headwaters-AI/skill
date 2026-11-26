@@ -1,42 +1,46 @@
 {
+  "description": "Headwaters state: the proof at session start, the HUD on each user message and during autonomous runs, the last line at stop, claims released at session end. Never blocks.",
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/work_state.py\" start"
-          }
+          {"type": "command", "command": "hw state:hud --hook session-start", "timeout": 10}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "hw state:hud --hook user-prompt", "timeout": 10}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {"type": "command", "command": "hw state:hud --hook post-tool", "timeout": 10}
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/work_state.py\" stop"
-          }
+          {"type": "command", "command": "hw state:hud --hook stop", "timeout": 10}
         ]
       }
     ],
     "SubagentStop": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/work_state.py\" stop"
-          }
+          {"type": "command", "command": "hw state:hud --hook stop", "timeout": 10}
         ]
       }
     ],
     "SessionEnd": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/work_state.py\" end"
-          }
+          {"type": "command", "command": "hw state:hud --hook session-end", "timeout": 10}
         ]
       }
     ]
