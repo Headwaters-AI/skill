@@ -24,7 +24,7 @@ Headwaters has three tools for working in causal space:
 
 - **Ask before you spend.** Choices, decisions, chat, refine and compile are paid; make none until the user has approved a budget and the data to send.
 - **Use a causal state** when the user set two or more conditions, when you will choose between options that matter to them, or when something only they can settle. Skip it for one-step work.
-- **At a fork, ask `choices`.** One call turns an open question about the situation into a short list of viable options, usually two to seven, strongest first, as a face sees it. It costs a fraction of a cent. Use it before you commit to a path: what to try next, how to read an ambiguous request, what to ask the user. Leave out `--question` and the face proposes the question it would ask.
+- **At a fork, ask `choices`.** When the next moves are not obvious and nothing lists them, choices narrows that open space to the few that are viable, usually two to seven, strongest first, as a face sees them. One call, a fraction of a cent. When the options are already known, a decision ranks them; when they are not, choices finds them. Use it before you commit to a path: what to try next, how to read an ambiguous request, what to ask the user. Leave out `--question` and the face proposes the question it would ask.
 - **For a judgement call,** find a face with `hw face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Even a weakly fitting face gives one view worth having: use it, and say how well it fits. A close ranking means the choice is the user's.
 - **Farm out simple work.** When a task has many small pieces, ask `@head~dispatcher` which model each should go to and send them with `maestro:chat --decoder`, keeping the hard parts for yourself.
 - **Run `--help`** before a flag you have not used.
@@ -279,7 +279,7 @@ Run `hw <topic>:<command> --help` before using a flag you have not seen.
 
 ### Choices on its own
 
-You do not need a causal state, or a decision after it, to use choices. A single call is a quick sounding board whenever the space of possible next moves is wide open: it narrows that space to the few options a face's judgement says are viable, each with a short reason.
+You do not need a causal state, or a decision after it, to use choices. A single call is a quick sounding board whenever the space of possible next moves is wide open, which is most of real work: there is no list of legal moves, only what you know so far. Choices reads the situation and returns the few options worth considering, each with a reason, so you search a short list instead of everything.
 
 ```bash
 hw maestro:choices --face @owner~face --state "<what you know so far>" --question "<the fork you are at>"
