@@ -69,6 +69,18 @@ A one-step task with a single right answer does not need one.
 
 **Start light.** A state costs nothing to build by hand, and it is fast: add the goal, one plain premise per condition the user set, and a test for each condition you can check. Refine (paid, and slower) only where you do not yet know what the goal depends on. Weigh options with `state:choices --rank` so the ranking is kept in the state.
 
+```bash
+hw state:create --use
+hw state:add "the dinner is planned" "Dinner for six on Friday" --role goal --said "<their words>"
+hw state:add "the guests" "Six; one vegan, one with a nut allergy"            --and "the dinner is planned"
+hw state:add "the menu" "Starter, main and dessert everyone can eat"          --and "the dinner is planned" --on "the guests"
+hw state:add "test: every dish is vegan and nut-free" "true if no dish has animal products or nuts" --role test --on "the menu"
+hw state:choices "the menu" --face @owner~home-cook --question "Which menu?" --rank   # candidates under "the menu"
+hw state:edit "test: every dish is vegan and nut-free" --status verified --tested "<the candidate you used>" --evidence "<what you checked>"
+```
+
+`--and` and `--or` take the parent's key. **The face sees only the premise and what it reads through `--on`,** so link the facts it needs (here, the guests) before you ask `state:choices`. Read each candidate's description, not just its name: if a name comes back generic, rename it to what it is with `state:edit "<name>" --key "<what it is>"`.
+
 ### Premises
 
 A causal state is a graph of premises, called `items` in the CLI. Each premise has:
