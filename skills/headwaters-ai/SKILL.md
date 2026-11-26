@@ -20,6 +20,13 @@ Headwaters has three tools for working in causal space:
 - **Faces** are masks on causal space: each one encodes a particular taste and judgement.
 - **Maestro** is the encoder that brings them together: it reads a state through a face into causal `why code` and uses them to steer various  models: choices, decisions, chat.
 
+**In practice** (details in each section below):
+
+- **Ask before you spend.** Choices, decisions, chat, refine and compile are paid; make none until the user has approved a budget and the data to send.
+- **Use a causal state** when the user set two or more conditions, when you will choose between options that matter to them, or when something only they can settle. Skip it for one-step work.
+- **For a judgement call,** find a face with `hw face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Read a weak fit or a close ranking as the user's call.
+- **Run `--help`** before a flag you have not used.
+
 ```
 state ─▶ [ face ▸ Maestro ] ─why code ─▶ decoder ─▶ choices · decision · chat
    ▲                                                        │
@@ -345,7 +352,7 @@ Use the HTTP API for any language, or `hw` for scripts and probing. The chat end
 **The live docs are the source of truth** for request syntax, limits, prices and current behaviour. Read the relevant pages as part of the task:
 
 - Documentation index: `https://docs.faces.sh/llms.txt`. Append `.md` to a page path for Markdown.
-- OpenAPI spec: `https://api.faces.sh/openapi.json`. The API base is `https://api.faces.sh/v1`.
+- OpenAPI spec: `https://api.faces.sh/openapi.json`. The API base is `https://api.faces.sh/v1`, and every call sends the key as `Authorization: Bearer <key>`.
 - Prices and limits: `GET /v1/rates`. Models: `GET /v1/models`.
 
 These move to `docs.headwaters.ai` and `api.headwaters.ai` after the move to headwaters.ai; use whichever resolves. If you can't reach the docs at all, say so and leave out version-dependent details rather than guessing them.
