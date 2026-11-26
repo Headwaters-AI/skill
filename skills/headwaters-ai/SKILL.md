@@ -200,8 +200,8 @@ For a long output, pass `--max-tokens` (a thinking model can spend the default o
 **Keep your own dispatcher.** The public dispatcher knows what is reported about models; yours knows what happened in your work. After dispatched work comes back and you have checked it, write each lesson in the first person, as the situation and what you learned, in a lessons file kept with the project (`dispatch-lessons.md`). Writing it is free:
 
 ```
-Support replies, 40 tickets: gemma-4-31b-it wrote friendly replies but invented menu names and product facts in 17 of 40. I send fact-bearing replies to a stronger model, or give the small one the help text to quote.
-Ticket labels, 40 tickets: claude-haiku-5-5 labelled all 40 correctly in one batch. I send labelling to it.
+<the kind of work, and its size>: <model> <what it did well or badly, with a count>. I <what you will do next time>.
+Ticket labels, 40 tickets: <model> labelled 38 of 40 correctly in one batch; it missed two urgent ones. I send labelling to it and check urgency myself.
 ```
 
 Then compile the file into your own face, once the user has approved the small cost (a short lessons file is a fraction of a cent):
@@ -211,7 +211,7 @@ hw face:create --name "My dispatcher" --alias dispatcher --description "Which mo
 hw face:compile dispatcher --file dispatch-lessons.md --medium other --rush
 ```
 
-From then on, dispatch with both, yours and the public one: `--face "(@you~dispatcher | @head~dispatcher)"`. Add each new lesson to the file and compile it again; note in the state where the lessons file and your dispatcher are, so the next session finds them.
+From then on, dispatch with both, yours and the public one: `--face "(@you~dispatcher | @head~dispatcher)"`. Each compile adds its file as a new source, so compile only what is new: put each batch's new lessons in a file of their own (`dispatch-lessons-<date>.md`) and compile that, while `dispatch-lessons.md` keeps the full list for you to read. Note in the state where the lessons and your dispatcher are, so the next session finds them.
 
 **Seeding your own dispatcher.** Inherit a public one: `hw face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
 
