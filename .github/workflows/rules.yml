@@ -15,6 +15,9 @@ permissions:
 
 jobs:
   request:
+    # Off until the gate (Headwaters-AI/release-gate) is turned on for this repo: then
+    # set the repository variable GATE_READY=true (#2080 item 3.5).
+    if: vars.GATE_READY == 'true'
     runs-on: ubuntu-latest
     steps:
       - id: token
@@ -22,7 +25,7 @@ jobs:
         with:
           client-id: ${{ vars.GATE_TRIGGER_CLIENT_ID }}
           private-key: ${{ secrets.GATE_TRIGGER_KEY }}
-          owner: faces-sh
+          owner: Headwaters-AI
           repositories: release-gate
       - name: Request the check
         env:
@@ -41,5 +44,5 @@ jobs:
           esac
           # The trigger app may only start workflows, so this names the branch rather
           # than letting gh look it up.
-          gh api -X POST repos/faces-sh/release-gate/actions/workflows/gate.yml/dispatches \
+          gh api -X POST repos/Headwaters-AI/release-gate/actions/workflows/gate.yml/dispatches \
             -f ref=main -f "inputs[repo]=$REPO_NAME" "$@"
