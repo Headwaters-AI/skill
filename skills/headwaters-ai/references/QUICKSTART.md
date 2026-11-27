@@ -11,8 +11,8 @@ From nothing to a face's first choices, from the terminal. Follow the steps in o
 ## 1. Install or update the CLI
 
 ```bash
-npm install -g @headwaters-ai/cli@latest
-hw --version
+npm install -g hwai@latest
+hwai --version
 ```
 
 The same command installs the CLI or updates it.
@@ -30,14 +30,14 @@ Ask the user where they are starting from:
 
 **A (log in):**
 ```bash
-hw account:login --email USER_EMAIL --password 'USER_PASSWORD'
-hw account:whoami
+hwai account:login --email USER_EMAIL --password 'USER_PASSWORD'
+hwai account:whoami
 ```
 
 **B (API key):**
 ```bash
-hw config:set api_key <key>        # or set HW_API_KEY in the environment
-hw account:whoami
+hwai config:set api_key <key>        # or set HEADWATERS_API_KEY in the environment
+hwai account:whoami
 ```
 
 **C (sign up here):** ask which plan:
@@ -52,11 +52,11 @@ Prices and allowances change: check `GET /v1/rates` before quoting them. Then re
 
 ```bash
 # Free
-RESULT=$(hw account:register --email USER_EMAIL --password 'USER_PASSWORD' --username USERNAME --json)
+RESULT=$(hwai account:register --email USER_EMAIL --password 'USER_PASSWORD' --username USERNAME --json)
 echo "$RESULT" | jq -r '.checkout_url'
 
 # Connect or Pro
-RESULT=$(hw account:register --email USER_EMAIL --password 'USER_PASSWORD' --username USERNAME --plan connect --json)   # or --plan pro
+RESULT=$(hwai account:register --email USER_EMAIL --password 'USER_PASSWORD' --username USERNAME --plan connect --json)   # or --plan pro
 echo "$RESULT" | jq -r '.checkout_url'
 ```
 
@@ -65,7 +65,7 @@ The username is 1 to 32 characters: a lowercase letter, then lowercase letters, 
 Ask the user to open the checkout link in their browser and pay. When they confirm:
 
 ```bash
-hw account:balance --json | jq '.is_active'
+hwai account:balance --json | jq '.is_active'
 ```
 
 `true`: carry on. `false`: the payment may not have gone through; ask them to try the link again.
@@ -75,10 +75,10 @@ hw account:balance --json | jq '.is_active'
 ## 3. A key for programs
 
 ```bash
-hw key:create --name "my-key"
+hwai key:create --name "my-key"
 ```
 
-A program or another agent uses it as `HW_API_KEY`.
+A program or another agent uses it as `HEADWATERS_API_KEY`.
 
 ## 4. Your face
 
@@ -89,19 +89,19 @@ Every account already has a face of its own, aliased **`me`**. To build the user
 Decide first whether it is a **document** (one author's own writing) or a **thread** (a conversation, interview or transcript, where only one named speaker is the face). Every document needs a `--medium` (`email`, `text message`, `social post`, `essay`, `academic paper`, `blog post`, `legal document`, `thread reply`, `conversation`, `lecture` or `other`), and every source a `--perspective`: `first-person` for their own words, `third-person` for writing about them. Ask the user when you do not know; never guess.
 
 ```bash
-hw face:compile me --file essay.txt --medium essay --perspective first-person
-hw face:compile me --file interview.txt --kind thread --face-speaker "Sam"
-hw face:import me --url "https://www.youtube.com/watch?v=VIDEO_ID"   # a video, transcribed on the server
+hwai face:compile me --file essay.txt --medium essay --perspective first-person
+hwai face:compile me --file interview.txt --kind thread --face-speaker "Sam"
+hwai face:import me --url "https://www.youtube.com/watch?v=VIDEO_ID"   # a video, transcribed on the server
 ```
 
-`hw face:compile` waits for the compile to finish. If it times out, it exits with an error that says the compile is still queued or running; check it with `hw face:compile:status`. A face runs at most 3 compiles at once, and more wait their turn.
+`hwai face:compile` waits for the compile to finish. If it times out, it exits with an error that says the compile is still queued or running; check it with `hwai face:compile:status`. A face runs at most 3 compiles at once, and more wait their turn.
 
 ## 6. Ask it
 
 ```bash
-hw maestro:choices --face @USERNAME~me --state "A startup offers me a lead role at a lower salary." \
+hwai maestro:choices --face @USERNAME~me --state "A startup offers me a lead role at a lower salary." \
   --question "Should I take the offer?"                       # the options the face would weigh
-hw maestro:choices --face @USERNAME~me --state "A startup offers me a lead role at a lower salary."   # the question it would ask
+hwai maestro:choices --face @USERNAME~me --state "A startup offers me a lead role at a lower salary."   # the question it would ask
 ```
 
 The options come strongest first, in the face's own terms. For a situation longer than 3,000 tokens, or one your agent keeps building, use a causal state (`STATES.md`).
@@ -118,20 +118,20 @@ So that you, and the next session, see where the work stands without having to r
 <!-- headwaters:start -->
 ## Causal state (Headwaters)
 This project keeps a causal state for long work (`.headwaters/state`).
-- At the start of a session, run `hw state:get` and pick up from its last line.
+- At the start of a session, run `hwai state:get` and pick up from its last line.
 - For work with several steps, tradeoffs, or goals the user gave you, add the goal and refine it before you start. Skip it for one-step tasks.
-- When something happens (an answer, a test run, a new instruction), record it with `hw state:add` or `hw state:edit`.
+- When something happens (an answer, a test run, a new instruction), record it with `hwai state:add` or `hwai state:edit`.
 <!-- headwaters:end -->
 ```
 
 4. **If your harness keeps a memory,** save what you learned here that you would otherwise have to ask again: the username, the faces and what each is for, any budget the user agreed. Don't save instructions to use Headwaters; the note and the hooks do that.
 
-> TODO (#2091): `hw state:hud`, which the user-message hook and the status line call, ships with the next CLI release.
+> TODO (#2091): `hwai state:hud`, which the user-message hook and the status line call, ships with the next CLI release.
 
 ## What's next
 
-- **Steer a decision:** `hw maestro:decide --face @USERNAME~me --state "…" --question "…"`.
-- **Steer a reply:** `hw maestro:chat --face @USERNAME~me` with any chat model as the decoder.
+- **Steer a decision:** `hwai maestro:decide --face @USERNAME~me --state "…" --question "…"`.
+- **Steer a reply:** `hwai maestro:chat --face @USERNAME~me` with any chat model as the decoder.
 - **More faces, and finding public ones:** `FACES.md`.
 - **Work on a task as a proof:** `STATES.md`.
-- **Connect ChatGPT** (Connect or Pro): `hw account:connect openai`.
+- **Connect ChatGPT** (Connect or Pro): `hwai account:connect openai`.

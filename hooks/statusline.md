@@ -9,7 +9,7 @@ Add this to `~/.claude/settings.json` (or a project's `.claude/settings.json`):
 {
   "statusLine": {
     "type": "command",
-    "command": "hw state:hud --hook statusline",
+    "command": "hwai state:hud --hook statusline",
     "refreshInterval": 30
   }
 }
@@ -17,7 +17,7 @@ Add this to `~/.claude/settings.json` (or a project's `.claude/settings.json`):
 
 It reads the directory from the status line's JSON on stdin (`workspace.current_dir`), cuts
 the line to the terminal width (`COLUMNS`), and prints nothing when there is no state (in
-`auto`), when `hw state:hud off` is set, or on any error. A status line that prints nothing
+`auto`), when `hwai state:hud off` is set, or on any error. A status line that prints nothing
 goes blank.
 
 Claude Code runs the command when a session starts, after each assistant message and on a few
@@ -41,5 +41,5 @@ line"). So the user, or the agent with the user's OK, adds the snippet above by 
 the skill does not.
 
 Your settings hold one `statusLine`. If one is already set, keep it and add the HUD to its
-script (for example, pipe the same stdin to `hw state:hud --hook statusline` and print its line
+script (for example, pipe the same stdin to `hwai state:hud --hook statusline` and print its line
 as one more row: each line a script prints is its own row).

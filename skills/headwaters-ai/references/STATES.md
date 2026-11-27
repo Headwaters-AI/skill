@@ -11,7 +11,7 @@ The work follows Peirce's cycle, with refinement before it:
 3. Weigh them, to know which to try first (induction).
 4. Verify with tests that are true or false of the finished work (deduction).
 
-`hw state:refine` does steps 1 to 3 for you. It decides whether a premise needs splitting into conditions, pinning to one meaning, a single test, or the human's answer, then proposes and judges the children with tested prompts. That leaves you free to do what only you can: write the tests, and the code that passes them.
+`hwai state:refine` does steps 1 to 3 for you. It decides whether a premise needs splitting into conditions, pinning to one meaning, a single test, or the human's answer, then proposes and judges the children with tested prompts. That leaves you free to do what only you can: write the tests, and the code that passes them.
 
 The state also tells you where you are. Your commands, and hooks that run in the background, show you the tree with its checkboxes and a last line naming what still stands between you and a proved goal: what to refine, what to run, and where to wait. Waiting is how a branch pauses: on the human's answer, a test that is running, or something outside that has to change. The other branches go on.
 
@@ -19,7 +19,7 @@ Every task becomes part of a proof in progress. Your job is to complete it, and 
 
 ## Reading the tree
 
-`hw state:get` prints the tree, one box per line:
+`hwai state:get` prints the tree, one box per line:
 
 ```
 [ ] 1 the dinner is planned  AND
@@ -54,7 +54,7 @@ Open. Next to try: 1.2.2 (p 0.29). Proved when 1.3 passes on 1.2.2.
 
 ## Faces and builders
 
-A face is an expert the state consults: it proposes the children of a premise and the candidates of a choice, and steers the decisions that judge and weigh them. `hw face:list --for "<the task>"` ranks the faces that fit a task; each branch has its own task, so its best face can differ from the root's. Every command that consults a face takes it as `--face @owner~alias` and is billed per call.
+A face is an expert the state consults: it proposes the children of a premise and the candidates of a choice, and steers the decisions that judge and weigh them. `hwai face:list --for "<the task>"` ranks the faces that fit a task; each branch has its own task, so its best face can differ from the root's. Every command that consults a face takes it as `--face @owner~alias` and is billed per call.
 
 A builder is a subagent that works one branch. `state:claim "<key>" <name>` gives it the branch: the box and everything under it, never its inputs. Any write into the branch by anyone else is refused until the claim is released (`state:claim "<key>" --release`) or expires after 30 minutes, and the session-end hook releases the session's claims. A builder writes with `--as <name>`. `state:get "<key>"` is the branch as a builder reads it.
 
@@ -63,22 +63,22 @@ A test run is recorded on the test: `state:edit "<test>" --status verified|inval
 ## Commands
 
 ```
-hw state:create --use                          a new state for this directory (.headwaters/state)
-hw state:use <id>                              point this directory at a state
-hw state:get [--query "<text>"] [--json|--problog|--dot]   the tree and its last line
-hw state:add "<key>" "<value>"               a new box; refused if the key exists
+hwai state:create --use                          a new state for this directory (.headwaters/state)
+hwai state:use <id>                              point this directory at a state
+hwai state:get [--query "<text>"] [--json|--problog|--dot]   the tree and its last line
+hwai state:add "<key>" "<value>"               a new box; refused if the key exists
     --role goal|test   --and "<parent>" | --or "<parent>"   --on "<a>,<b>"
     --said "<their words>"   --await human|environment|<test key>   --origin   --status   --description   --as <who>
-hw state:edit "<key>"                        changes only what it is given; refused if the key does not exist
+hwai state:edit "<key>"                        changes only what it is given; refused if the key does not exist
     --value   --key "<new key>"   --status   --description   --await ...|none   --note "<text>"
     --evidence "<text>"   --tested "<candidate>"   --on "<a>,<b>"   --said "<their words>"   --as <who>
-hw state:get "<key>" [--depth N] [--up] [--query "<text>"]   one box, its branch, and its messages
-hw state:delete "<key>"                      removes it and its edges; the history keeps it
-hw state:claim "<key>" <who> | --release     claims or releases a branch
-hw state:refine "<key>" --face @owner~alias [-r [--depth N|all]]   refines it: conditions, candidates ranked, one test, or a question for the human; -r goes on down its branches, breadth first (3 levels by default), and its last line gives the calls, the dollars and the branches waiting
-hw state:choices "<key>" --face @owner~alias [--question "<q>"]   candidates for it, from the face
-hw state:decide "<key>" --face @owner~alias       ranks its candidates
-hw face:list --for "<task>"                    the faces that fit a task, best first
+hwai state:get "<key>" [--depth N] [--up] [--query "<text>"]   one box, its branch, and its messages
+hwai state:delete "<key>"                      removes it and its edges; the history keeps it
+hwai state:claim "<key>" <who> | --release     claims or releases a branch
+hwai state:refine "<key>" --face @owner~alias [-r [--depth N|all]]   refines it: conditions, candidates ranked, one test, or a question for the human; -r goes on down its branches, breadth first (3 levels by default), and its last line gives the calls, the dollars and the branches waiting
+hwai state:choices "<key>" --face @owner~alias [--question "<q>"]   candidates for it, from the face
+hwai state:decide "<key>" --face @owner~alias       ranks its candidates
+hwai face:list --for "<task>"                    the faces that fit a task, best first
 ```
 
-> TODO (#2082): the project directory name (`.headwaters/state` here) and the exact flags follow the `hw` CLI as built; check against `hw state --help` once #2082 is dogfooded.
+> TODO (#2082): the project directory name (`.headwaters/state` here) and the exact flags follow the `hwai` CLI as built; check against `hwai state --help` once #2082 is dogfooded.

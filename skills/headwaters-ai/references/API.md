@@ -1,6 +1,6 @@
 # Building with the API
 
-Use the HTTP API for any language, or `hw` for scripts and probing. The chat endpoints are drop-in replacements for OpenAI's and Anthropic's, so an existing client changes only its `model`: `@owner~face:maestro-1/<chat model>`.
+Use the HTTP API for any language, or `hwai` for scripts and probing. The chat endpoints are drop-in replacements for OpenAI's and Anthropic's, so an existing client changes only its `model`: `@owner~face:maestro-1/<chat model>`.
 
 **The live docs are the source of truth** for request syntax, limits, prices and current behaviour. Read the relevant pages as part of the task:
 

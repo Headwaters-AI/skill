@@ -3,22 +3,22 @@
 ## The CLI
 
 ```
-npm install -g @headwaters-ai/cli     # needs Node 20 or later
-hw --version
+npm install -g hwai     # needs Node 20 or later
+hwai --version
 ```
 
 ## A key
 
 ```
-hw account:register        # a new account (or hw account:login for an existing one)
-hw key:create          # a key for programs
+hwai account:register        # a new account (or hwai account:login for an existing one)
+hwai key:create          # a key for programs
 ```
 
 For a new user, `QUICKSTART.md` walks through signing up, the plans and payment step by step.
 
-Or set `HW_API_KEY` in the environment that runs the agent. `HW_BASE_URL` points the CLI at another API host; it defaults to the live API.
+Or set `HEADWATERS_API_KEY` in the environment that runs the agent. `HEADWATERS_BASE_URL` points the CLI at another API host; it defaults to the live API.
 
-> TODO (#2082, #2080): the package, the config directory and the default API host are set by the `hw` CLI as built, and by the move to headwaters.ai. Check this page against `hw --help` once #2082 is dogfooded.
+> TODO (#2082, #2080): the package, the config directory and the default API host are set by the `hwai` CLI as built, and by the move to headwaters.ai. Check this page against `hwai --help` once #2082 is dogfooded.
 
 ## The skill
 
@@ -47,9 +47,9 @@ The hooks keep an agent aware of its causal state. None of them ever blocks the 
 In an empty project directory:
 
 ```
-hw state:create --use
-hw state:add "it works" "The CLI reaches the API" --role goal
-hw state:get
+hwai state:create --use
+hwai state:add "it works" "The CLI reaches the API" --role goal
+hwai state:get
 ```
 
 The tree prints with one open goal.

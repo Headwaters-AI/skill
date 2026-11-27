@@ -2,7 +2,7 @@
 name: headwaters-ai
 license: MIT
 description: >
-  Headwaters tools (the `hw` CLI and API): a causal state that tracks a task as a proof you can check,
+  Headwaters tools (the `hwai` CLI and API): a causal state that tracks a task as a proof you can check,
   Maestro inference steered by faces (masks compiled from someone's writing), and dispatch of work to
   the model that suits it. Use whenever: work spans several steps, constraints or sessions and you
   need to know what is settled, assumed or still open (planning an event, a migration, a project); you
@@ -10,7 +10,7 @@ description: >
   committing; you want a choice judged through a named point of view (a skeptical CFO, a lawyer, a
   designer) or several side by side; you want a person's writing or your own hard-won lessons turned
   into a face that judges like them; you want routine pieces of work sent to cheaper models, and to
-  remember which models did well; or the user mentions Headwaters, Maestro, `hw`, `hw state:*` output
+  remember which models did well; or the user mentions Headwaters, Maestro, `hwai`, `hwai state:*` output
   or a face handle like `@owner~face`, including code that calls the API. Skip one-shot tasks with a
   single obvious answer.
 ---
@@ -29,7 +29,7 @@ Headwaters has three tools for working in causal space:
 - **Ask before you spend.** Choices, decisions, chat, refine and compile are paid; make none until the user has approved a budget and the data to send.
 - **Use a causal state** when the user set two or more conditions, when you will choose between options that matter to them, or when something only they can settle. Skip it for one-step work.
 - **At a fork, ask `choices`.** When the next moves are not obvious and nothing lists them, choices narrows that open space to the few that are viable, usually two to seven, strongest first, as a face sees them. One call, a fraction of a cent. When the options are already known, a decision ranks them; when they are not, choices finds them. Use it before you commit to a path: what to try next, how to read an ambiguous request, what to ask the user. Leave out `--question` and the face proposes the question it would ask.
-- **For a judgement call,** find a face with `hw face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Even a weakly fitting face gives one view worth having: use it, and say how well it fits. A close ranking means the choice is the user's.
+- **For a judgement call,** find a face with `hwai face:list --for "<the judgement>"`, ask `choices` for the options, then a decision to rank them. Even a weakly fitting face gives one view worth having: use it, and say how well it fits. A close ranking means the choice is the user's.
 - **Farm out simple work, and keep what you learn.** When a task has many small pieces, ask `@head~dispatcher` which model each should go to and send them with `maestro:chat --decoder`, keeping the hard parts for yourself. When a model's work needs fixing, or does better than expected, write it down as a lesson and compile it into your own dispatcher, so the next dispatch knows.
 - **Run `--help`** before a flag you have not used.
 
@@ -39,7 +39,7 @@ state ─▶ [ face ▸ Maestro ] ─why code ─▶ decoder ─▶ choices · d
    └────────────── the results update the state ────────────┘
 ```
 
-`hw` is the Headwaters CLI. Commands are grouped by topic, as `hw topic:command`.
+`hwai` is the Headwaters CLI. Commands are grouped by topic, as `hwai topic:command`.
 
 
 | topic                 | function                 | commands                                                                                                                                                                          |
@@ -49,15 +49,15 @@ state ─▶ [ face ▸ Maestro ] ─why code ─▶ decoder ─▶ choices · d
 | [`state`](#state)     | memory                   | `state:create`, `state:use`, `state:get`, `state:add`, `state:edit`, `state:delete`, `state:claim`, `state:refine`, `state:choices`, `state:decide`, `state:items`, `state:close` |
 | [`account`](#account) | sign-in, plan and credit | `account:register`, `account:login`, `account:whoami`, `account:balance`, `account:topup`, `account:usage`, `account:plan`, `account:connect`, `account:show`                     |
 | [`key`](#key)         | API keys                 | `key:create`, `key:list`, `key:edit`, `key:revoke`                                                                                                                                |
-| `config`              | local settings for `hw`  | `config:set`, `config:show`, `config:clear`                                                                                                                                       |
+| `config`              | local settings for `hwai`  | `config:set`, `config:show`, `config:clear`                                                                                                                                       |
 
 
 Every command takes `--help`, and `--json` for machine-readable output. The full manual is in `references/CLI.md`.
 
-> TODO (#2082): generate `references/CLI.md` from `hw --help` for every command, with a script run at each CLI release, so the manual can never drift from the CLI.
+> TODO (#2082): generate `references/CLI.md` from `hwai --help` for every command, with a script run at each CLI release, so the manual can never drift from the CLI.
 
 
-## Causal state (`hw state:*`)
+## Causal state (`hwai state:*`)
 
 **Turn a task into a proof you can check at any moment.** A causal state is like a todo list that has to be proved: each goal is broken into what it depends on, and a box is checked only when a test passes or the human confirms it. Ask it at any point whether you are on track, and it tells you, from the proof rather than from your recollection.
 
@@ -83,13 +83,13 @@ A one-step task with a single right answer does not need one.
 **Start light.** A state costs nothing to build by hand, and it is fast: add the goal, one plain premise per condition the user set, and a test for each condition you can check. Refine (paid, and slower) only where you do not yet know what the goal depends on. Weigh options with `state:choices --rank` so the ranking is kept in the state.
 
 ```bash
-hw state:create --use
-hw state:add "the dinner is planned" "Dinner for six on Friday" --role goal --said "<their words>"
-hw state:add "the guests" "Six; one vegan, one with a nut allergy"            --and "the dinner is planned"
-hw state:add "the menu" "Starter, main and dessert everyone can eat"          --and "the dinner is planned" --on "the guests"
-hw state:add "every dish is vegan and nut-free" "true if no dish has animal products or nuts" --role test --on "the menu"
-hw state:choices "the menu" --face @owner~home-cook --question "Which menu?" --rank   # candidates under "the menu"
-hw state:edit "every dish is vegan and nut-free" --status verified --tested "<the candidate you used>" --evidence "<what you checked>"
+hwai state:create --use
+hwai state:add "the dinner is planned" "Dinner for six on Friday" --role goal --said "<their words>"
+hwai state:add "the guests" "Six; one vegan, one with a nut allergy"            --and "the dinner is planned"
+hwai state:add "the menu" "Starter, main and dessert everyone can eat"          --and "the dinner is planned" --on "the guests"
+hwai state:add "every dish is vegan and nut-free" "true if no dish has animal products or nuts" --role test --on "the menu"
+hwai state:choices "the menu" --face @owner~home-cook --question "Which menu?" --rank   # candidates under "the menu"
+hwai state:edit "every dish is vegan and nut-free" --status verified --tested "<the candidate you used>" --evidence "<what you checked>"
 ```
 
 `--and` and `--or` take the parent's key. `--role test` marks a test, so don't start its key with "test:". Record a run with `--tested "<candidate>"` when the test reads an OR candidate; a test that reads a plain premise is recorded with `--status` and `--evidence` alone. **The face sees only the premise and what it reads through `--on`,** so link the facts it needs (here, the guests) before you ask `state:choices`. Read each candidate's description, not just its name: if a name comes back generic, rename it to what it is with `state:edit "<name>" --key "<what it is>"`.
@@ -124,11 +124,11 @@ The tree works as a proof structure. Truth flows upward through the logic: an AN
 
 Probabilities rank OR candidates so you know what to try first. They never establish truth. Only verification does, through a passing test or the human's confirmation. A failing test invalidates a candidate, and the next one becomes the one to try.
 
-**Prove a candidate through its tests, not by editing it.** Choosing a candidate does not prove it, and neither does its rank. Give the choice a test that reads it, run the test, and record the run on the candidate: `hw state:edit "<test>" --status verified --tested "<candidate>" --evidence "<what the run showed>"`. The candidate is then proved by the server. Setting a candidate's own status to `verified` with its rank as evidence skips the check the state exists to make.
+**Prove a candidate through its tests, not by editing it.** Choosing a candidate does not prove it, and neither does its rank. Give the choice a test that reads it, run the test, and record the run on the candidate: `hwai state:edit "<test>" --status verified --tested "<candidate>" --evidence "<what the run showed>"`. The candidate is then proved by the server. Setting a candidate's own status to `verified` with its rank as evidence skips the check the state exists to make.
 
 A premise with children stays open until its refinement is complete, even when every child is proved. Changing a goal's value sets its refinement back to incomplete.
 
-Let `hw state:refine` judge completeness where you can (`-r` refines a whole branch). Mark `--refinement complete` by hand only when you have checked that the children are enough, and expect `state:get` to list it as marked by hand.
+Let `hwai state:refine` judge completeness where you can (`-r` refines a whole branch). Mark `--refinement complete` by hand only when you have checked that the children are enough, and expect `state:get` to list it as marked by hand.
 
 ### Discerning
 
@@ -141,11 +141,11 @@ Discerning is the process of completely refining a goal and then verifying a nec
 **Read what refine adds.** It proposes conditions under a face; some will be off or repeated. Delete what does not belong and add what is missing before you build on it.
 
 ```bash
-hw state:create --use                                  # a new state, used by every hw call in this directory
-hw state:add "the dinner is planned" "A dinner for six on Friday" --role goal --said "<their words>"
-hw state:refine "the dinner is planned" --face @owner~face -r
-hw state:get                                           # the tree, and what to do next
-hw state:edit "<test>" --status verified --tested <candidate> --evidence "<what the run showed>"
+hwai state:create --use                                  # a new state, used by every hwai call in this directory
+hwai state:add "the dinner is planned" "A dinner for six on Friday" --role goal --said "<their words>"
+hwai state:refine "the dinner is planned" --face @owner~face -r
+hwai state:get                                           # the tree, and what to do next
+hwai state:edit "<test>" --status verified --tested <candidate> --evidence "<what the run showed>"
 ```
 
 Example output:
@@ -173,11 +173,11 @@ Waiting on one branch never blocks work on the others. The work is done when the
 
 ### Choices, decisions and the record
 
-- `hw state:choices` asks a face to propose candidates for an open premise (abduction).
-- `hw state:decide` ranks them by how likely each is to work (induction). It ranks and never prunes.
-- `hw state:edit` records test results.
-- `hw state:add --jsonl <file>` adds many premises in one call, which keeps a large state cheap to build.
-- `hw state:items` lists the history of every decision and write.
+- `hwai state:choices` asks a face to propose candidates for an open premise (abduction).
+- `hwai state:decide` ranks them by how likely each is to work (induction). It ranks and never prunes.
+- `hwai state:edit` records test results.
+- `hwai state:add --jsonl <file>` adds many premises in one call, which keeps a large state cheap to build.
+- `hwai state:items` lists the history of every decision and write.
 
 Nothing yet restores the tree to an earlier point. Read the history with `state:items` and work from the current tree.
 
@@ -187,16 +187,16 @@ Once a goal is refined, each leaf is a small, well-defined piece of work that ca
 
 1. **Shape the tree with your strongest model.** Refinement is where judgement matters most.
 2. **Route the leaves.** Give simple pieces to small, cheap models, hard pieces to stronger models, or keep them yourself. `state:choices` and `state:decide` write candidates and rankings into the state, so each decision stays on the record.
-3. **Claim branches for subagents.** `hw state:claim "<key>" <name>` gives a branch to one agent, so several agents can work in parallel without overwriting each other.
+3. **Claim branches for subagents.** `hwai state:claim "<key>" <name>` gives a branch to one agent, so several agents can work in parallel without overwriting each other.
 4. **Record outcomes as lessons,** in the first person: the situation, and what you learned from it. For example: "When a task merges records across dated changes, I give it to the stronger model: the small one follows the first change and stops."
 5. **Distill the lessons into a dispatcher face** (`@you~dispatcher`) and compile it again as lessons accumulate. Then ask a decision steered by that face which model to use, with your shortlist as the options.
 
 **Use the public dispatcher.** `@head~dispatcher` is published, compiled from what is reported about every chat model Headwaters serves, so you can dispatch before you have lessons of your own. For each simple leaf, ask it which model to use, then send the leaf to that model:
 
 ```bash
-hw maestro:decide --face @head~dispatcher --state "<the piece of work, in a line or two>" \
+hwai maestro:decide --face @head~dispatcher --state "<the piece of work, in a line or two>" \
   --question "Which model should this task be dispatched to?" --option "<model>" --option "<model>" --option "<model>"
-hw maestro:chat --face @owner~<a face that fits the work> --decoder "<the model it picked>" --message "<the piece of work>"
+hwai maestro:chat --face @owner~<a face that fits the work> --decoder "<the model it picked>" --message "<the piece of work>"
 ```
 
 For a long output, pass `--max-tokens` (a thinking model can spend the default on thinking and return nothing) and split a big batch into a few calls. Put a cheap model and a strong one on the shortlist, so the dispatcher can tell you when a piece needs the strong one. Note on the leaf which model did it and how it went (`state:edit "<leaf>" --note "<model>: <how it went>"`): those notes are the lessons your own dispatcher is made from.
@@ -211,19 +211,19 @@ Ticket labels, 40 tickets: <model> labelled 38 of 40 correctly in one batch; it 
 Then compile the file into your own face, once the user has approved the small cost (a short lessons file is a fraction of a cent):
 
 ```bash
-hw face:create --name "My dispatcher" --alias dispatcher --description "Which model my work should go to, from what I have seen"   # once
-hw face:compile dispatcher --file dispatch-lessons.md --medium other --rush
+hwai face:create --name "My dispatcher" --alias dispatcher --description "Which model my work should go to, from what I have seen"   # once
+hwai face:compile dispatcher --file dispatch-lessons.md --medium other --rush
 ```
 
 From then on, dispatch with both, yours and the public one: `--face "(@you~dispatcher | @head~dispatcher)"`. Each compile adds its file as a new source, so compile only what is new: put each batch's new lessons in a file of their own (`dispatch-lessons-<date>.md`) and compile that, while `dispatch-lessons.md` keeps the full list for you to read. Note in the state where the lessons and your dispatcher are, so the next session finds them.
 
-**Seeding your own dispatcher.** Inherit a public one: `hw face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
+**Seeding your own dispatcher.** Inherit a public one: `hwai face:list --public --search "dispatch" --sort usage`. Write what has been reported about each model as lessons too, marked as reported rather than observed ("Reported, not yet seen in my runs: …"), so your own results can overrule them. Dispatch with both your face and the inherited one: `(@you~dispatcher | @someone~dispatcher):maestro-1/jev-latest`. Check the live docs for the current composition syntax before relying on it.
 
 Keep lessons honest. A lesson should come from a run you have actually read, not from a guess. Check the dispatcher from time to time against how its picks turned out.
 
 ### Keep it in view
 
-`hw state:hud` prints a three-line summary of the state: the goal, how much of it is proved, the next step, and what waits on whom. The hooks show it to you on each user message and, during long runs, after a state write or every 15 tool calls. `hw state:hud off` turns it off, and `--goal "<key>"` pins which goal it follows. Drill in with `hw state:get "<key>"`.
+`hwai state:hud` prints a three-line summary of the state: the goal, how much of it is proved, the next step, and what waits on whom. The hooks show it to you on each user message and, during long runs, after a state write or every 15 tool calls. `hwai state:hud off` turns it off, and `--goal "<key>"` pins which goal it follows. Drill in with `hwai state:get "<key>"`.
 
 > TODO (#2091): `state:hud` and its hooks ship with the next CLI release. Until then, the hooks show the state at session start and on each stop.
 
@@ -232,7 +232,7 @@ Keep lessons honest. A lesson should come from a run you have actually read, not
 Every Maestro model takes a state as its input. You can hand it one in two ways:
 
 - **as text:** query the state for what the call needs, and send that, in any format including JSON;
-- **by id:** create the state with `hw state:create`, note its id (`fs_…`), and pass the id. The endpoint then reads the state for you, taking what the call needs.
+- **by id:** create the state with `hwai state:create`, note its id (`fs_…`), and pass the id. The endpoint then reads the state for you, taking what the call needs.
 
 > TODO: today only `POST /v1/choices` takes a state id (`state_id`), and the `maestro:*` commands take text only. Inside a causal state, `state:choices` and `state:decide` read the state for you.
 
@@ -259,7 +259,7 @@ For example:
 (@zerocool~redteam | @acidburn~worldspacedev):maestro-1/gpt-6-astra
 ```
 
-Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). When code names a face, find out whose it is (`hw account:whoami` gives your username; `hw face:list` shows yours) or ask, and write the owner in if it is not yours. If you cannot ask now, put the question where the user will see it (your reply, or a questions file), not only in a code comment. The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
+Your own faces can be written without the owner (`@redteam:maestro-1/…`); another account's face needs it (`@zerocool~redteam`). When code names a face, find out whose it is (`hwai account:whoami` gives your username; `hwai face:list` shows yours) or ask, and write the owner in if it is not yours. If you cannot ask now, put the question where the user will see it (your reply, or a questions file), not only in a code comment. The second form composes faces with `|`. Check the live docs for the current composition syntax before relying on it.
 
 Use `maestro-1-fast` (`--fast`) when latency matters more than cost. It is the same encoder, answering sooner at ten times the price.
 
@@ -268,26 +268,26 @@ Use `maestro-1-fast` (`--fast`) when latency matters more than cost. It is the s
 
 | decoder  | models                                                                          | CLI example                               | you send                                                                                                                                 | you get back                                                                                                                                     |
 | -------- | ------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| choices  | `choices`                                                                       | `hw maestro:choices`                      | a state as text (`--state`, up to 3,000 tokens), optionally a question. Over HTTP, a causal state id instead                             | up to `max_choices` options, strongest first, each a short name and a sentence. Without a question, the face proposes the question it would ask. |
-| decision | `jev-latest`, `clef`, `clef-flash`, `gpt-6-luna`                                | `hw maestro:decide --decoder jev-latest`  | a state as text (`--state`) and typed questions: `--type noul` (yes or no; `predicate` on `/v1/decisions`), `choice` or `score` (graded) | a probability for each option, level or yes, plus the top answer                                                                                 |
-| chat     | `gpt-*`, `claude-*`, `grok-*`, `gemini-*`, `qwen-*`, `glm-*`, `deepseek-*`, ... | `hw maestro:chat --decoder glm-5-3-flash` | a state as a conversation (`--message`, `--system`)                                                                                      | the chat model's reply, in that API's standard shape                                                                                             |
+| choices  | `choices`                                                                       | `hwai maestro:choices`                      | a state as text (`--state`, up to 3,000 tokens), optionally a question. Over HTTP, a causal state id instead                             | up to `max_choices` options, strongest first, each a short name and a sentence. Without a question, the face proposes the question it would ask. |
+| decision | `jev-latest`, `clef`, `clef-flash`, `gpt-6-luna`                                | `hwai maestro:decide --decoder jev-latest`  | a state as text (`--state`) and typed questions: `--type noul` (yes or no; `predicate` on `/v1/decisions`), `choice` or `score` (graded) | a probability for each option, level or yes, plus the top answer                                                                                 |
+| chat     | `gpt-*`, `claude-*`, `grok-*`, `gemini-*`, `qwen-*`, `glm-*`, `deepseek-*`, ... | `hwai maestro:chat --decoder glm-5-3-flash` | a state as a conversation (`--message`, `--system`)                                                                                      | the chat model's reply, in that API's standard shape                                                                                             |
 
 
 Each kind of decoder gives a different mode of inference: choices is abduction (the options worth weighing), a decision is induction (a calibrated probability for each option), and chat is broadcast (a reply in that model's own words).
 
-The choices decoder is native to Headwaters. Decision and chat decoders include models from frontier labs and popular open-weight models. Run `hw models:list --kind decision` or `--kind chat` for the current list.
+The choices decoder is native to Headwaters. Decision and chat decoders include models from frontier labs and popular open-weight models. Run `hwai models:list --kind decision` or `--kind chat` for the current list.
 
 `noul` is not a typo: it is the System One name for a yes-or-no question, and what `--type` takes. On `/v1/decisions` the same type is called `predicate`.
 
 ### Use
 
 ```bash
-hw maestro:choices --face @owner~face --state "<the situation>" [--question "<the choice you face>"]
-hw maestro:decide  --face @owner~face --state "<the situation>" --question "<which option?>" --option "<name>" --option "<name>"
-hw maestro:chat    --face @owner~face --decoder <chat model> --message "<…>" [--thread <name>]
+hwai maestro:choices --face @owner~face --state "<the situation>" [--question "<the choice you face>"]
+hwai maestro:decide  --face @owner~face --state "<the situation>" --question "<which option?>" --option "<name>" --option "<name>"
+hwai maestro:chat    --face @owner~face --decoder <chat model> --message "<…>" [--thread <name>]
 ```
 
-Run `hw <topic>:<command> --help` before using a flag you have not seen.
+Run `hwai <topic>:<command> --help` before using a flag you have not seen.
 
 **Write the state for a person.** Could a smart person, shown only this state and this question, answer quickly? If not, fix the state before the wording. Give what a person would look at (who said what, names rather than raw IDs), keep every part relevant, ask one judgement per question, and name options by what they are.
 
@@ -302,8 +302,8 @@ Run `hw <topic>:<command> --help` before using a flag you have not seen.
 You do not need a causal state, or a decision after it, to use choices. A single call is a quick sounding board whenever the space of possible next moves is wide open, which is most of real work: there is no list of legal moves, only what you know so far. Choices reads the situation and returns the few options worth considering, each with a reason, so you search a short list instead of everything.
 
 ```bash
-hw maestro:choices --face @owner~face --state "<what you know so far>" --question "<the fork you are at>"
-hw maestro:choices --face @owner~face --state "<an ambiguous request and its context>"   # the face proposes the question to ask
+hwai maestro:choices --face @owner~face --state "<what you know so far>" --question "<the fork you are at>"
+hwai maestro:choices --face @owner~face --state "<an ambiguous request and its context>"   # the face proposes the question to ask
 ```
 
 Good moments for one: before you start digging (which lead to follow first), when a request can be read several ways (which reading is most likely), when you are about to ask the user something (which question matters most), and when you are stuck (what you have not considered). Read the options, then act on them yourself; send the names to a decision only when you need a ranking. Treat each option as a lead, not a finding: check its facts against what you know, and expect a face that fits the work poorly to rank poorly too.
@@ -312,9 +312,9 @@ Good moments for one: before you start digging (which lead to follow first), whe
 
 ```bash
 for f in @owner~auditor @owner~growth @owner~designer; do
-  hw maestro:choices --face "$f" --state "<the situation>" --question "<the fork>"
+  hwai maestro:choices --face "$f" --state "<the situation>" --question "<the fork>"
 done
-hw maestro:decide --face @owner~<whose judgement should settle it> --state "<the situation>" \
+hwai maestro:decide --face @owner~<whose judgement should settle it> --state "<the situation>" \
   --question "<the fork>" --option "<pooled option>" --option "<pooled option>" --option "<pooled option>"
 ```
 
@@ -326,7 +326,7 @@ Chain them. First, choices proposes the options from a state and a question, or 
 
 For example, under `@you~home-cook`, with the state "A dinner for six on Friday; one guest is vegan, one has a nut allergy" and the question "Which menu?", choices proposes "curry, quinoa salad, sorbet", "pie, garlic bread, brownies" and others. A `choice` decision on `jev-latest`, under the same face, then ranks them: curry 0.71, pie 0.21. Under a different face the same options can rank differently, so the face you pick decides the route. Inside a causal state, `state:choices --rank` does both steps and writes the ranking into the state.
 
-## Faces (`hw face:*`)
+## Faces (`hwai face:*`)
 
 A face is a mask on causal space that encodes a taste and judgement, compiled from a body of source texts. It adapts to the input and decides which causes Maestro sees in a state. Faces are compiled, not trained. You can make them as new tasks arrive and new lessons are learned, and they compose, so you can use them like building blocks in a steering program.
 
@@ -341,9 +341,9 @@ What you can distill:
 ### Find one
 
 ```bash
-hw face:list --for "<the judgement you need>"            # your faces, best fit first
-hw face:list --for "<…>" --public                        # including published faces
-hw face:list --public --search "<words>" --sort usage    # most-used published faces that match
+hwai face:list --for "<the judgement you need>"            # your faces, best fit first
+hwai face:list --for "<…>" --public                        # including published faces
+hwai face:list --public --search "<words>" --sort usage    # most-used published faces that match
 ```
 
 Fit scores rarely go much above 0.7: a face made for the task scores about 0.55 to 0.7, a general one about 0.45 to 0.5. A score near the top of that range is a good match, not a loose one. If the best fit is weak, make one. Each branch of a causal state has its own task, so its best face can differ from the root's.
@@ -351,12 +351,12 @@ Fit scores rarely go much above 0.7: a face made for the task scores about 0.55 
 ### Make one
 
 ```bash
-hw face:create --name "Home Cook" --alias home-cook \
+hwai face:create --name "Home Cook" --alias home-cook \
   --description "An experienced home cook who plans meals for groups" \
   --specialty "Planning and cooking meals for groups of guests"
-hw face:compile home-cook --file notes.md --medium essay
-hw face:compile home-cook --file interview.txt --kind thread --face-speaker "Sam"
-hw face:import  home-cook --url "https://www.youtube.com/watch?v=VIDEO_ID"
+hwai face:compile home-cook --file notes.md --medium essay
+hwai face:compile home-cook --file interview.txt --kind thread --face-speaker "Sam"
+hwai face:import  home-cook --url "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 - **Description and specialty** are what `face:list --for` matches a task against. Write them as what the face is good for.
@@ -369,13 +369,13 @@ hw face:import  home-cook --url "https://www.youtube.com/watch?v=VIDEO_ID"
 
 ### Share one
 
-`hw face:publish` lists a face in the public catalog. `hw face:share` gives it to chosen accounts. `face:unpublish` and `face:unshare` undo them.
+`hwai face:publish` lists a face in the public catalog. `hwai face:share` gives it to chosen accounts. `face:unpublish` and `face:unshare` undo them.
 
 ## Account and API
 
 **Spending is the user's call.** Make no paid call (choices, decisions, chat, refine, compile) until the user has approved a budget, the data to be sent (point out anything personal or private), and which key will be used. A budget the user gives you with the task covers sending that task's own content; ask again before sending anything beyond it.
 
-Every account has a face of its own, aliased **`me`**: compile the user's own writing into it rather than creating another. `hw account:whoami` shows who you are signed in as, and `hw account:balance` the credit left.
+Every account has a face of its own, aliased **`me`**: compile the user's own writing into it rather than creating another. `hwai account:whoami` shows who you are signed in as, and `hwai account:balance` the credit left.
 
 **Writing code against the API?** The base is `https://api.faces.sh/v1`, every call sends `Authorization: Bearer <key>`, and the chat endpoints take any OpenAI or Anthropic client with `model` set to `@owner~face:maestro-1/<chat model>`. A long call can return `200` with an `error` body: treat that as a failure. Read `references/API.md` before writing the code; it has the docs, the error codes and the hosts.
 
@@ -389,8 +389,8 @@ Sign-up, keys, plans and cost are in `references/ACCOUNT.md`.
 | `references/API.md`        | building with the HTTP API: docs, auth, hosts, error codes                                     |
 | `references/ACCOUNT.md`    | sign-up, keys, plans, spending caps and cost                                                   |
 | `references/QUICKSTART.md` | from nothing to a first answer: install, sign up or in, a key, your own face, a first question |
-| `references/CLI.md`        | every `hw` command and flag (not yet written: use `hw <topic> --help`)                         |
-| `references/SETUP.md`      | installing `hw`, keys, and the plugin hooks for Claude Code and Codex                          |
+| `references/CLI.md`        | every `hwai` command and flag (not yet written: use `hwai <topic> --help`)                         |
+| `references/SETUP.md`      | installing `hwai`, keys, and the plugin hooks for Claude Code and Codex                          |
 | `references/STATES.md`     | the causal state in full: reading the tree, refinement, every `state:` command                 |
 | `references/FACES.md`      | distilling, compiling, finding, combining and sharing faces                                    |
 | `references/MODELS.md`     | the decoders you can name, the encoder's two speeds, and how to choose among them              |

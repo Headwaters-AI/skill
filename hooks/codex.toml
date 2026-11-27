@@ -1,10 +1,10 @@
 # The Headwaters state hooks for Codex: add these lines to ~/.codex/config.toml (or a repo's
 # .codex/config.toml). Session start adds the directory's whole proof; each user message and
-# the PostToolUse refresh (after an hw state: write, or every 15 tool calls) add the HUD; stop
+# the PostToolUse refresh (after an hwai state: write, or every 15 tool calls) add the HUD; stop
 # shows the proof's last line; session end releases the session's claims. None ever blocks:
-# on any error each prints nothing and exits 0. `hw state:hud off` silences the HUD here.
+# on any error each prints nothing and exits 0. `hwai state:hud off` silences the HUD here.
 #
-# Codex has no CLAUDE_ENV_FILE, so session start cannot set HW_SESSION for the agent's shell:
+# Codex has no CLAUDE_ENV_FILE, so session start cannot set HEADWATERS_SESSION for the agent's shell:
 # claims taken in a Codex session carry no session, and session end has none to release.
 # They expire on their own (30 minutes by default).
 
@@ -12,35 +12,35 @@
 
 [[hooks.SessionStart.hooks]]
 type = "command"
-command = "hw state:hud --hook session-start --harness codex"
+command = "hwai state:hud --hook session-start --harness codex"
 timeout = 10
 
 [[hooks.UserPromptSubmit]]
 
 [[hooks.UserPromptSubmit.hooks]]
 type = "command"
-command = "hw state:hud --hook user-prompt --harness codex"
+command = "hwai state:hud --hook user-prompt --harness codex"
 timeout = 10
 
 [[hooks.PostToolUse]]
 
 [[hooks.PostToolUse.hooks]]
 type = "command"
-command = "hw state:hud --hook post-tool --harness codex"
+command = "hwai state:hud --hook post-tool --harness codex"
 timeout = 10
 
 [[hooks.Stop]]
 
 [[hooks.Stop.hooks]]
 type = "command"
-command = "hw state:hud --hook stop --harness codex"
+command = "hwai state:hud --hook stop --harness codex"
 timeout = 10
 
 [[hooks.SubagentStop]]
 
 [[hooks.SubagentStop.hooks]]
 type = "command"
-command = "hw state:hud --hook stop --harness codex"
+command = "hwai state:hud --hook stop --harness codex"
 timeout = 10
 
 # SessionEnd allows at most 3 seconds in Codex.
@@ -48,5 +48,5 @@ timeout = 10
 
 [[hooks.SessionEnd.hooks]]
 type = "command"
-command = "hw state:hud --hook session-end --harness codex"
+command = "hwai state:hud --hook session-end --harness codex"
 timeout = 3
