@@ -377,7 +377,7 @@ hwai face:import  home-cook --url "https://www.youtube.com/watch?v=VIDEO_ID"
 
 Every account has a face of its own, aliased **`me`**: compile the user's own writing into it rather than creating another. `hwai account:whoami` shows who you are signed in as, and `hwai account:balance` the credit left.
 
-**Writing code against the API?** The base is `https://api.faces.sh/v1`, every call sends `Authorization: Bearer <key>`, and the chat endpoints take any OpenAI or Anthropic client with `model` set to `@owner~face:maestro-1/<chat model>`. A long call can return `200` with an `error` body: treat that as a failure. Read `references/API.md` before writing the code; it has the docs, the error codes and the hosts.
+**Writing code against the API?** The base is `https://api.headwaters.ai/v1`, every call sends `Authorization: Bearer <key>`, and the chat endpoints take any OpenAI or Anthropic client with `model` set to `@owner~face:maestro-1/<chat model>`. A long call can return `200` with an `error` body: treat that as a failure. Read `references/API.md` before writing the code; it has the docs, the error codes and the hosts.
 
 Sign-up, keys, plans and cost are in `references/ACCOUNT.md`.
 

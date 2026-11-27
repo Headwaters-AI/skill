@@ -4,11 +4,11 @@ Use the HTTP API for any language, or `hwai` for scripts and probing. The chat e
 
 **The live docs are the source of truth** for request syntax, limits, prices and current behaviour. Read the relevant pages as part of the task:
 
-- Documentation index: `https://docs.faces.sh/llms.txt`. Append `.md` to a page path for Markdown.
-- OpenAPI spec: `https://api.faces.sh/openapi.json`. The API base is `https://api.faces.sh/v1`, and every call sends the key as `Authorization: Bearer <key>`.
+- Documentation index: `https://docs.headwaters.ai/llms.txt`. Append `.md` to a page path for Markdown.
+- OpenAPI spec: `https://api.headwaters.ai/openapi.json`. The API base is `https://api.headwaters.ai/v1`, and every call sends the key as `Authorization: Bearer <key>`.
 - Prices and limits: `GET /v1/rates`. Models: `GET /v1/models`.
 
-These move to `docs.headwaters.ai` and `api.headwaters.ai` after the move to headwaters.ai; use whichever resolves. If you can't reach the docs at all, say so and leave out version-dependent details rather than guessing them.
+If you can't reach the docs at all, say so and leave out version-dependent details rather than guessing them.
 
 ## Errors
 
