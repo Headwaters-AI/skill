@@ -1,6 +1,6 @@
 {
   "name": "headwaters-ai",
-  "version": "2.0.0",
+  "version": "0.0.1",
   "description": "The Headwaters skill (causal state, Maestro and faces), with hooks that keep the directory's causal state in view. They never block.",
   "author": {"name": "Headwaters Lab Inc."}
 }

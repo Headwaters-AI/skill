@@ -4,14 +4,12 @@ From nothing to a face's first choices, from the terminal. Follow the steps in o
 
 **Claude Code only:** right after the skill is installed, its slash commands do not load until the session restarts. You cannot restart it yourself, so tell the user: *"Type `/exit`, then run `claude --continue` so the new skills load and we pick up where we left off."* Other agents load new skills without a restart.
 
-> TODO (#2080): the hosts below serve only after the move to headwaters.ai. Until then the API is `https://api.faces.sh`.
-
 **Website:** https://headwaters.ai · **API:** https://api.headwaters.ai (schema: https://api.headwaters.ai/openapi.json)
 
 ## 1. Install or update the CLI
 
 ```bash
-npm install -g hwai@latest
+npm install -g @headwaters-ai/cli@latest
 hwai --version
 ```
 
