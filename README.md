@@ -8,4 +8,4 @@ The agent skill for Headwaters: tools for working in causal space.
 
 The skill is in `skills/headwaters-ai/`. The hooks in `hooks/` keep the directory's causal state in view (Claude Code through the plugin, Codex through `hooks/codex.toml`). `drafts/` holds working drafts of the skill; they are not loaded.
 
-Install the CLI with `npm install -g hwai`, then start from `skills/headwaters-ai/references/QUICKSTART.md`.
+Install the CLI with `npm install -g @headwaters-ai/cli` (the command is `hwai`), then start from `skills/headwaters-ai/references/QUICKSTART.md`.

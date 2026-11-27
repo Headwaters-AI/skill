@@ -11,7 +11,7 @@ From nothing to a face's first choices, from the terminal. Follow the steps in o
 ## 1. Install or update the CLI
 
 ```bash
-npm install -g hwai@latest
+npm install -g @headwaters-ai/cli@latest
 hwai --version
 ```
 
