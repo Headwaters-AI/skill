@@ -3,7 +3,7 @@
 ## The CLI
 
 ```
-npm install -g hwai     # needs Node 20 or later
+npm install -g @headwaters-ai/cli     # needs Node 20 or later; the command is hwai
 hwai --version
 ```
 

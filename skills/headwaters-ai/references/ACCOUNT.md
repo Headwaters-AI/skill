@@ -1,7 +1,7 @@
 # Account, keys and cost
 
 ```bash
-npm install -g hwai@latest         # install or update hwai
+npm install -g @headwaters-ai/cli@latest   # install or update hwai
 hwai account:register --email … --password '…' --username … [--plan connect|pro]   # see references/QUICKSTART.md first
 hwai account:login --email … --password '…'
 hwai account:whoami
